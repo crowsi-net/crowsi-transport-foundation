@@ -1,0 +1,26 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install declared Rust toolchain
+        run: rustup toolchain install 1.97 --profile minimal
+      - name: Test default features
+        run: cargo +1.97 test --locked
+      - name: Test all features
+        run: cargo +1.97 test --locked --all-features
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Test Node contracts
+        run: node --test test/*.test.mjs

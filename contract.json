@@ -1,0 +1,30 @@
+{
+  "owner": "crowsi-transport-foundation",
+  "version": "0.10.0",
+  "encoding": "opaque byte payload framed by LF; optional CR before LF removed; final nonempty EOF frame allowed",
+  "limits": {"accepted":1048576,"buffered":1048577,"frame":1048578,"pendingBytes":4194312,"pendingMessages":64,"readAhead":8192},
+  "oversize": "terminal refusal; no drain, partial reinterpretation or replay",
+  "pendingReservation": "whole maximum frame before serialization; count and bytes reserved until write completion or failure",
+  "logicalSession": "explicit rebind to a new open connection after old connection closed or failed; sequence survives",
+  "sequence": "checked unsigned 64-bit; no saturation; not application operation or state revision",
+  "connection": "one physical stream lifecycle; Rust stdin and stdout are separately owned directional pipes",
+  "deliveryReceipt": "local-write completion only; not peer acknowledgement",
+  "http": {
+    "request": "method, exact URL, headers, optional bounded body, timeout and buffered response ceiling",
+    "wirePreparation": "JSON serialization and optional Zstd compression occur once; retries reuse exact bytes",
+    "loopbackCallback": "one finite GET for localhost or 127.0.0.1 at an explicitly selected port",
+    "excluded": ["destination selection","credential access","network execution","redirect policy","retry","provider schema","response meaning"]
+  },
+  "receipts": {
+    "DeliveryReceipt": "Crowsi local transport only",
+    "CommandReceipt": "application command admission owner, not minted here",
+    "ExecutionReceipt": "application execution owner, not minted here",
+    "ProviderReceipt": "external effect owner, not minted here",
+    "CommitReceipt": "storage commit owner, not minted here"
+  },
+  "opaqueApplicationReferences": ["OperationId","StateRevision","ProviderGenerationRef","WorkerGenerationRef","Invocation","ExecutionGrant","ControlGrant"],
+  "outcomes": ["InputTooLarge","FrameTooLarge","Backpressure","ConnectionClosed","ConnectionFailed","ProtocolViolation","MalformedFrame","Timeout","SequenceExhausted"],
+  "authorization": "none; identification, heartbeat and delivery do not authorize",
+  "futureClasses": {"STATE":"reliable revision-aware state","COMMAND":"reliable request","EVENT":"reliable occurrence, not current state","BULK":"snapshot/graph/file","EPHEMERAL":"explicit loss-tolerant traffic"},
+  "recovery": "application owner supplies exact current references and snapshot; no automatic retransmission, latest-ref rebinding or provider incarnation replacement"
+}

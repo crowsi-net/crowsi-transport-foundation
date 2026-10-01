@@ -1,0 +1,33 @@
+{
+  "owner": "crowsi-transport-foundation",
+  "version": "0.10.0",
+  "wireVersion": 1,
+  "foundation": "contract.json",
+  "implementation": "optional dependency-free Node ./realtime export; Rust byte foundation unchanged",
+  "negotiation": "explicit peer capabilities supplied by the caller before binding; same wire version, class intersection and minimum resource bounds; not authentication",
+  "envelope": {
+    "common": ["version", "kind", "session", "sequence"],
+    "MESSAGE": ["class", "metadata", "payloadLength", "payload"],
+    "ACK": ["targetSession", "targetSequence", "class", "metadata"],
+    "payload": "canonical base64 of opaque bytes, length checked after bounded framing; decoded callback receives Buffer",
+    "sequence": "existing LogicalSession checked u64 MessageSequence, decimal string on wire; local DeliveryReceipt carries the same sequence",
+    "unknownFields": "reject"
+  },
+  "classes": {
+    "STATE": {"metadata": ["key", "revision", "mode", "baseRevision only for Delta"], "rule": "Snapshot or owner-produced Delta; peer ACK advances only confirmed delivery cursor; never canonical adoption"},
+    "COMMAND": {"metadata": ["operation"], "rule": "opaque application OperationId; peer ACK is not admission; correlation retained until explicit caller completion or uncertainty; never automatically replay"},
+    "EVENT": {"metadata": ["event optional"], "rule": "ordered reliable occurrence in the session; no durable event store or inferred current state"},
+    "BULK": {"metadata": ["transfer", "totalBytes", "index", "last", "digest"], "rule": "bounded streaming SHA-256; synchronous caller staging sink; commit only after exact total and final digest; no automatic resume"},
+    "EPHEMERAL": {"metadata": [], "rule": "no ACK or recovery expectation; explicit queued/dropped result, local write errors remain observable"}
+  },
+  "stateOwner": {"input": ["key", "revision or null", "maxPayloadBytes", "AbortSignal"], "results": ["Snapshot", "Delta", "NoChange", "RecoveryUnavailable", "RevisionMismatch"], "constraints": "NoChange requires exact confirmed token; Delta base must equal confirmed token; unknown/old token requires an owner-provided Snapshot, not inferred fallback; owner must honor cancellation"},
+  "cursor": "bounded volatile subscription metadata: lastSent, lastConfirmed, received. Revisions are opaque; only known message sequence order prevents delayed ACK regression",
+  "restart": "same-process explicit reconnect retains LogicalSession/cursors; new process creates a new session and obtains owner snapshot; no Crowsi durable journal",
+  "bounds": {"subscriptions":16,"correlations":64,"transfersPerDirection":2,"payloadBytes":524288,"chunkBytes":65536,"transferBytes":16777216,"inFlightChunksPerTransfer":1,"queuedBytes":4194312,"queueMessages":64,"defaultEffectiveWholeFrameReservations":4,"defaultTimeoutMs":10000,"maximumTimeoutMs":120000},
+  "resources": "foundation writer budget plus separate realtime correlation budget, each <=4 frames; max 16 owner recovery requests, one per subscription; receiver holds digest/order only, never full bulk contents; synchronous application callbacks own their materialization resources",
+  "bulkDuplicate": "only exact immediately preceding chunk duplicate accepted without writing twice; older/missing/changed chunks rejected; no completed-transfer replay store; uncertain transfer restarts only at explicit owner request with a fresh transfer identity",
+  "bulkTimeout": "sender completion rejects BulkIncomplete and releases transfer; receiver aborts staging and reports BulkIncomplete once on idle timeout/disconnect; other reliable classes are not silently dropped",
+  "outcomes": ["UnsupportedClass","InvalidEnvelope","UnknownSession","UnknownSubscription","AckOutOfRange","RecoveryUnavailable","RevisionMismatch","DeliveryUncertain","BulkIntegrityFailure","BulkIncomplete"],
+  "receiptOwners": {"DeliveryReceipt":"Crowsi local write only","PeerDeliveryAck":"Crowsi peer runtime receipt only","CommandReceipt":"application admission owner","ExecutionReceipt":"execution owner","ProviderReceipt":"provider owner","CommitReceipt":"storage owner"},
+  "notOwned": ["canonical state", "StateRevision issuance", "semantic meaning", "Grant", "provider incarnation", "Projection", "model runtime"]
+}

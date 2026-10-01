@@ -1,0 +1,41 @@
+{
+  "name": "@crowsi/transport-foundation",
+  "version": "0.10.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": "./node/transport.mjs",
+    "./process": "./node/process.mjs",
+    "./realtime": "./node/realtime.mjs",
+    "./state-socket": "./node/state-socket.mjs"
+  },
+  "imports": {
+    "#bytes": {
+      "browser": "./node/bytes-browser.mjs",
+      "default": "./node/bytes-node.mjs"
+    },
+    "#bulk": {
+      "browser": "./node/bulk-browser.mjs",
+      "default": "./node/realtime-bulk.mjs"
+    }
+  },
+  "files": [
+    "node",
+    "contract.json",
+    "realtime-contract.json",
+    "README.md",
+    "REALTIME.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crowsi-net/crowsi-transport-foundation.git"
+  }
+}
