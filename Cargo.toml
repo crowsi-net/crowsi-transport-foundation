@@ -1,4 +1,5 @@
 [package]
+readme = "README.md"
 name = "crowsi-transport-foundation"
 version = "0.10.0"
 edition = "2024"
@@ -7,7 +8,7 @@ license = "Apache-2.0"
 description = "Bounded local framing, delivery identities and transport lifecycle"
 repository = "https://github.com/crowsi-net/crowsi-transport-foundation"
 publish = ["ecosystem-private"]
-include = ["src/**", "tests/**", "Cargo.toml", "README.md", "contract.json", "LICENSE", "NOTICE"]
+include = ["src/**", "tests/**", "Cargo.toml", "README.md", "README.ja.md", "contract.json", "LICENSE", "NOTICE"]
 
 [workspace]
 

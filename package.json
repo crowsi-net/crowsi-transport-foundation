@@ -29,7 +29,8 @@
     "README.md",
     "REALTIME.md",
     "LICENSE",
-    "NOTICE"
+    "NOTICE",
+    "README.ja.md"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs"
