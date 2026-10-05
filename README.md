@@ -1,5 +1,7 @@
 # @crowsi/transport-foundation
 
+[日本語](README.ja.md)
+
 Exchange bounded messages between local processes without building framing and timeout handling again.
 
 ## What you can do
@@ -24,6 +26,6 @@ npm run test
 
 ## Documentation and source
 
-[Usage guide](docs/getting-started.md)
+[Usage guide](https://github.com/crowsi-net/crowsi-transport-foundation/blob/main/docs/getting-started.md)
 
-[Implementation and public interfaces](src) · [Verification cases](tests) · [Verification cases](test) · [Contributing](CONTRIBUTING.md) · [Security reporting](SECURITY.md) · [License](LICENSE) · [Attribution notices](NOTICE)
+[Implementation and public interfaces](https://github.com/crowsi-net/crowsi-transport-foundation/tree/main/src) · [Verification cases](https://github.com/crowsi-net/crowsi-transport-foundation/tree/main/tests) · [Verification cases](https://github.com/crowsi-net/crowsi-transport-foundation/tree/main/test) · [Contributing](https://github.com/crowsi-net/crowsi-transport-foundation/blob/main/CONTRIBUTING.md) · [Security reporting](https://github.com/crowsi-net/crowsi-transport-foundation/blob/main/SECURITY.md) · [License](LICENSE) · [Attribution notices](NOTICE)
