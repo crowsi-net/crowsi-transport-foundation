@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "../packages/crowsi-provider-http-transport/node_modules/@types"
+    ],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": [
+    "scripts/artifact-*.mts",
+    "scripts/types/artifact.mts"
+  ]
+}
