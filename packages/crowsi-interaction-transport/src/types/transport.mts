@@ -18,7 +18,7 @@ export interface EndpointContext { signal: AbortSignal; request: Request }
 export type EndpointHandler = (payload: unknown, context: EndpointContext) => unknown | Promise<unknown>;
 export interface EndpointOptions { origins: string[]; maximumBytes?: number; timeoutMs?: number }
 export interface StdioOptions {
-  command: string; args?: string[]; env?: NodeJS.ProcessEnv;
+  command: string; args?: string[]; env?: Record<string, string | undefined>;
   timeoutMs?: number; maximumBytes?: number; maximumQueue?: number;
 }
 export interface StdioTransport {

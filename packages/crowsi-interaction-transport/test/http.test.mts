@@ -4,7 +4,7 @@ import { createJsonEndpoint } from '../dist/http.mjs'
 test('HTTP boundary preserves outcomes, bounds input and rejects cross-site access', async () => {
   let calls = 0
   const serve = createJsonEndpoint(async value => {calls++;return value}, {origins:['http://localhost:4321'], maximumBytes:128})
-  const request = (body, origin='http://localhost:4321') => new Request('http://localhost:4321/api', {method:'POST',headers:{origin,'content-type':'application/json'},body})
+  const request = (body: string, origin='http://localhost:4321') => new Request('http://localhost:4321/api', {method:'POST',headers:{origin,'content-type':'application/json'},body})
   const result = {status:'Conflict',reason:'changed',issues:[]}
   const response = await serve(request(JSON.stringify(result)))
   assert.deepEqual(await response.json(), result)

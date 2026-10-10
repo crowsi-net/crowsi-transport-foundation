@@ -19,9 +19,10 @@ test('HTTP preserves structured failures and cancels timed-out and oversized bod
 
 test('change polling never overlaps, aborts on stop and does not replay failed invokes', async () => {
   let calls = 0, active = 0, maximum = 0, visible = true
-  const transport = createHttpTransport({endpoint:'/api/interaction',fetch:async (_, {signal}) => {
+  const transport = createHttpTransport({endpoint:'/api/interaction',fetch:async (_, options) => {
+    const signal = options?.signal;
     calls++; maximum = Math.max(maximum, ++active)
-    await new Promise(resolve => { const t=setTimeout(resolve,10); signal.addEventListener('abort',()=>{clearTimeout(t);resolve()},{once:true}) })
+    await new Promise<void>(resolve => { const t=setTimeout(resolve,10); signal?.addEventListener('abort',()=>{clearTimeout(t);resolve()},{once:true}) })
     active--; return Response.json({cursor:String(calls)})
   }})
   const watch = transport.watch(() => ({method:'subscribe'}), () => {}, () => {}, {intervalMs:5,active:()=>visible})
@@ -41,21 +42,21 @@ test('change polling never overlaps, aborts on stop and does not replay failed i
 test('in-flight success and error are suppressed after disposal, inactivity or authority invalidation', async () => {
   for (const reason of ['dispose', 'inactive', 'grant-revoked', 'scope-revoked', 'live']) {
     for (const fails of [false, true]) {
-      let release, calls = 0, messages = 0, errors = 0
+      let release: (() => void) | undefined, calls = 0, messages = 0, errors = 0
       const validity = {visible:true, grant:true, scope:true}
-      const pending = new Promise((resolve, reject) => { release = () => fails ? reject(new Error('offline')) : resolve(Response.json({cursor:'current'})) })
+      const pending = new Promise<Response>((resolve, reject) => { release = () => fails ? reject(new Error('offline')) : resolve(Response.json({cursor:'current'})) })
       const transport = createHttpTransport({endpoint:'/api/interaction', fetch:() => { calls++; return pending }})
       const watch = transport.watch(() => ({method:'subscribe'}), () => { messages++ }, () => { errors++ }, {
         intervalMs:60000, active:() => validity.visible && validity.grant && validity.scope,
       })
       assert.equal(calls, 1)
-      let stopping
+      let stopping: Promise<void> | undefined
       try {
         if (reason === 'dispose') stopping = watch.stop()
         if (reason === 'inactive') validity.visible = false
         if (reason === 'grant-revoked') validity.grant = false
         if (reason === 'scope-revoked') validity.scope = false
-        release()
+        assert.ok(release); release()
         // Settle the in-flight fetch and body microtasks before stopping. Calling
         // stop first for every case would conceal a missing active-after-await check.
         await nextTurn(); await nextTurn()
