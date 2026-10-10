@@ -50,7 +50,3 @@ cargo clippy --locked --all-targets --all-features -- -D warnings
 [API documentation](https://docs.rs/crowsi-transport-foundation) · [Source](https://github.com/crowsi-net/crowsi-transport-foundation) · [Usage guide](https://github.com/crowsi-net/crowsi-transport-foundation/blob/main/docs/getting-started.md)
 
 Apache-2.0. Retain the package LICENSE and NOTICE; see the source repository for security reporting and contribution guidelines.
-
-## Node implementation
-
-The repository also contains a separate Node transport implementation. Its npm package is a distinct distribution; installing this Rust crate does not install the Node implementation.

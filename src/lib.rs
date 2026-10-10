@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.crate.md")]
 //! Owner-neutral bounded transport. Delivery never authorizes or confirms an effect.
 use std::sync::{
     Arc, Mutex,
