@@ -1,6 +1,6 @@
 {
   "name": "@crowsi/provider-http-transport",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "type": "module",
   "license": "Apache-2.0",
   "description": "Bounded browser HTTP egress transport with explicit destination ownership",
@@ -18,8 +18,7 @@
     "README.md",
     "SECURITY.md",
     "LICENSE",
-    "NOTICE",
-    "README.ja.md"
+    "NOTICE"
   ],
   "scripts": {
     "format": "biome format --write src test scripts",
@@ -38,7 +37,7 @@
     "directory": "packages/crowsi-provider-http-transport"
   },
   "packageManager": "npm@11.12.1",
-  "homepage": "https://github.com/crowsi-net/crowsi-transport-foundation#readme",
+  "homepage": "https://github.com/crowsi-net/crowsi-transport-foundation/tree/main/packages/crowsi-provider-http-transport",
   "bugs": {
     "url": "https://github.com/crowsi-net/crowsi-transport-foundation/issues"
   },
@@ -49,6 +48,7 @@
   },
   "devDependencies": {
     "typescript": "5.9.3",
-    "@biomejs/biome": "2.5.15"
+    "@biomejs/biome": "2.5.15",
+    "@types/node": "24.19.2"
   }
 }
