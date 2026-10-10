@@ -1,5 +1,5 @@
 [package]
-readme = "README.md"
+readme = "README.crate.md"
 name = "crowsi-transport-foundation"
 version = "0.10.0"
 edition = "2024"
@@ -7,8 +7,8 @@ rust-version = "1.97.0"
 license = "Apache-2.0"
 description = "Bounded local framing, delivery identities and transport lifecycle"
 repository = "https://github.com/crowsi-net/crowsi-transport-foundation"
-publish = ["ecosystem-private"]
-include = ["src/**", "tests/**", "Cargo.toml", "README.md", "README.ja.md", "contract.json", "LICENSE", "NOTICE"]
+publish = ["crates-io"]
+include = ["src/**", "tests/**", "Cargo.toml", "README.md", "README.crate.md", "contract.json", "LICENSE", "NOTICE"]
 
 [workspace]
 

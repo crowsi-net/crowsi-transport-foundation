@@ -3,6 +3,10 @@
   "version": "0.10.0",
   "type": "module",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
   "engines": {
     "node": ">=22"
   },
@@ -37,6 +41,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/crowsi-net/crowsi-transport-foundation.git"
+    "url": "git+https://github.com/crowsi-net/crowsi-transport-foundation.git"
   }
 }
