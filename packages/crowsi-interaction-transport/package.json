@@ -4,18 +4,30 @@
   "type": "module",
   "license": "Apache-2.0",
   "files": [
-    "src",
+    "dist",
     "README.md",
     "LICENSE",
     "NOTICE"
   ],
   "exports": {
-    "./stdio": "./src/stdio.mjs",
-    "./client": "./src/client.mjs",
-    "./http": "./src/http.mjs"
+    "./stdio": {
+      "types": "./dist/stdio.d.mts",
+      "import": "./dist/stdio.mjs"
+    },
+    "./client": {
+      "types": "./dist/client.d.mts",
+      "import": "./dist/client.mjs"
+    },
+    "./http": {
+      "types": "./dist/http.d.mts",
+      "import": "./dist/http.mjs"
+    }
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepack": "npm run typecheck && npm test"
   },
   "engines": {
     "node": ">=22"
@@ -28,5 +40,9 @@
   "homepage": "https://github.com/crowsi-net/crowsi-transport-foundation#readme",
   "bugs": {
     "url": "https://github.com/crowsi-net/crowsi-transport-foundation/issues"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "24.12.0"
   }
 }

@@ -34,10 +34,16 @@ jobs:
         run: |
           cargo install cargo-audit --version 0.22.2 --locked --no-default-features --root "$RUNNER_TEMP/audit"
           "$RUNNER_TEMP/audit/bin/cargo-audit" audit --deny warnings
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
       - name: Verify Node transport packages
         run: |
           npm test
-          npm --prefix packages/crowsi-interaction-transport test
+          npm ci --prefix packages/crowsi-interaction-transport --workspaces=false --ignore-scripts
+          npm --prefix packages/crowsi-interaction-transport run typecheck --workspaces=false
+          npm --prefix packages/crowsi-interaction-transport test --workspaces=false
+          npm --prefix packages/crowsi-interaction-transport pack --workspaces=false
           cd packages/crowsi-provider-http-transport
           npm ci --workspaces=false --ignore-scripts
           npm run check --workspaces=false

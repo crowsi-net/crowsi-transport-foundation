@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createHttpTransport } from '../src/client.mjs'
+import { createHttpTransport } from '../dist/client.mjs'
 import { setImmediate as nextTurn } from 'node:timers/promises'
 
 test('HTTP preserves structured failures and cancels timed-out and oversized bodies', async () => {

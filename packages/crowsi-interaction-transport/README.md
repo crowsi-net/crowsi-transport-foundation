@@ -18,8 +18,9 @@ Package distribution is not activated by this documentation. Use the owning prod
 Use the package manager matching the checked-in lockfile and the Node.js version declared in `engines` in `package.json`. Run from this repository:
 
 ```sh
-npm install
-npm run test
+npm ci --ignore-scripts
+npm run typecheck
+npm test
 ```
 
 ## Documentation and source
@@ -31,3 +32,10 @@ npm run test
 ## Product responsibility
 
 This component is maintained in [crowsi-net/crowsi-transport-foundation](https://github.com/crowsi-net/crowsi-transport-foundation). Use the [product README](../../README.md) for composition, use cases and trust boundaries.
+
+## Typed interfaces
+
+Author runtime code in `src/*.mts` and share contracts through `src/types/`.
+The build emits executable ESM and declarations into `dist/`; npm exports resolve
+both from the same build. Payloads use `unknown` because validation and authority
+belong to the host application. Generated JavaScript is not hand-maintained.
