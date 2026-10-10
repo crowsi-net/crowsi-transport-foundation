@@ -1,4 +1,5 @@
 use crowsi_transport_foundation::*;
+#[cfg(feature = "async-io")]
 use std::{
     pin::Pin,
     sync::{
@@ -8,6 +9,7 @@ use std::{
     task::{Context, Poll},
     time::Duration,
 };
+#[cfg(feature = "async-io")]
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWriteExt, ReadBuf};
 fn limits(n: usize) -> Limits {
     Limits {
@@ -120,9 +122,11 @@ fn identity_rebind_does_not_mutate_application_authority() {
         std::any::type_name_of_val(&references.6)
     );
 }
+#[cfg(feature = "async-io")]
 struct Huge {
     read: Arc<AtomicUsize>,
 }
+#[cfg(feature = "async-io")]
 impl AsyncRead for Huge {
     fn poll_read(
         self: Pin<&mut Self>,
@@ -176,7 +180,9 @@ async fn actual_reader_stops_at_bound_and_eof_is_not_replay() {
     assert_eq!(r.next_frame().await.unwrap_err(), Outcome::ConnectionClosed);
 }
 
+#[cfg(feature = "async-io")]
 struct Broken(bool);
+#[cfg(feature = "async-io")]
 impl AsyncRead for Broken {
     fn poll_read(
         mut self: Pin<&mut Self>,
@@ -192,6 +198,7 @@ impl AsyncRead for Broken {
         }
     }
 }
+#[cfg(feature = "async-io")]
 impl tokio::io::AsyncWrite for Broken {
     fn poll_write(
         mut self: Pin<&mut Self>,

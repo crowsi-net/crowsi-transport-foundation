@@ -42,5 +42,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/crowsi-net/crowsi-transport-foundation.git"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

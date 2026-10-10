@@ -1,0 +1,54 @@
+{
+  "name": "@crowsi/provider-http-transport",
+  "version": "0.10.1",
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Bounded browser HTTP egress transport with explicit destination ownership",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "SECURITY.md",
+    "LICENSE",
+    "NOTICE",
+    "README.ja.md"
+  ],
+  "scripts": {
+    "format": "biome format --write src test scripts",
+    "format:check": "biome format src test scripts",
+    "lint": "biome lint --error-on-warnings src test scripts",
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "check:lines": "node scripts/check-lines.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:lines",
+    "prepack": "npm run check && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crowsi-net/crowsi-transport-foundation.git",
+    "directory": "packages/crowsi-provider-http-transport"
+  },
+  "packageManager": "npm@11.12.1",
+  "homepage": "https://github.com/crowsi-net/crowsi-transport-foundation#readme",
+  "bugs": {
+    "url": "https://github.com/crowsi-net/crowsi-transport-foundation/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "provenance": true
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@biomejs/biome": "2.5.15"
+  }
+}
