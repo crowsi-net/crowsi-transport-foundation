@@ -1,0 +1,21 @@
+{
+  "schema": "crowsi://network/observations/v1",
+  "generated_at": "2026-08-01T00:00:00.000Z",
+  "external_actions": false,
+  "observation_count": 1,
+  "observations": [
+    {
+      "id": "observation-sample-edge",
+      "target_id": "sample-edge",
+      "label": "Sample edge",
+      "zone": "example",
+      "protocol": "https",
+      "status": "reachable",
+      "observed_at": "2026-08-01T00:00:00.000Z",
+      "latency_ms": 18,
+      "packet_loss_percent": 0.0,
+      "source": "deterministic-sample",
+      "finding_codes": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+schema = "vpremises://infrastructure/service-requirements/v1"
+service_id = "crowsi-network-observer"
+service_ref = "vpremises://service/crowsi-network-observer@1"
+extends = ["rust-binary", "crowsi-observed"]
+
+[process]
+user = "crowsi"
+execution = "oneshot"
+artifact = "crowsi-network-observer"
+
+[state]
+directory = "/var/lib/crowsi/observations"
+backup_required = false
+
+[health]
+path = "command://crowsi-network-observer/sample"
+timeout_seconds = 10

@@ -11,6 +11,8 @@ publish = ["crates-io"]
 include = ["src/**", "tests/**", "Cargo.toml", "README.md", "README.crate.md", "contract.json", "LICENSE", "NOTICE"]
 
 [workspace]
+members = [".", "crates/*"]
+resolver = "3"
 
 [dependencies]
 tokio = { version = "1.49", features = ["io-util", "sync", "time"], optional = true }
