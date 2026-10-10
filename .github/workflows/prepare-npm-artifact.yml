@@ -1,0 +1,62 @@
+name: Prepare reviewed npm artifact
+on:
+  workflow_dispatch:
+    inputs:
+      expected-source-sha:
+        description: Exact main commit to validate and package
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Require the selected source
+        env:
+          EXPECTED_SHA: ${{ inputs.expected-source-sha }}
+        run: |
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ && "$EXPECTED_SHA" == "$GITHUB_SHA" ]]
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - name: Isolate configuration and public registry cache
+        run: |
+          : > "$RUNNER_TEMP/empty-user.npmrc"
+          : > "$RUNNER_TEMP/empty-global.npmrc"
+          echo "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/empty-user.npmrc" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/empty-global.npmrc" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_CACHE=$RUNNER_TEMP/release-cache" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_REGISTRY=https://registry.npmjs.org" >> "$GITHUB_ENV"
+      - name: Install pinned package tools without lifecycle hooks
+        run: npm install --global --ignore-scripts --no-audit --no-fund npm@11.12.1 pnpm@10.29.3
+      - name: Validate isolated package and dependencies
+        working-directory: packages/crowsi-interaction-transport
+        run: |
+          npm ci --workspaces=false --ignore-scripts
+          npm run --workspaces=false typecheck
+          npm run --workspaces=false test
+          npm audit --workspaces=false --audit-level=low
+      - name: Check release-tool contracts
+        run: node packages/crowsi-interaction-transport/node_modules/typescript/bin/tsc -p .github/tsconfig.release.json
+      - name: Test artifact metadata boundaries
+        run: node --test .github/scripts/artifact-record.test.mts
+      - name: Generate the executable distribution without lifecycle hooks
+        working-directory: packages/crowsi-interaction-transport
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/outgoing"
+          npm pack --workspaces=false --ignore-scripts --json --pack-destination "$GITHUB_WORKSPACE/outgoing" > "$RUNNER_TEMP/pack.json"
+          node "$GITHUB_WORKSPACE/.github/scripts/artifact-receipt.mts" "$RUNNER_TEMP/pack.json" "$GITHUB_WORKSPACE/outgoing"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: reviewed-npm-package
+          path: outgoing/
+          if-no-files-found: error
+          retention-days: 3
