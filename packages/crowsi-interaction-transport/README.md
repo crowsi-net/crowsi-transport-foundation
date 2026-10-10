@@ -15,12 +15,12 @@ Package distribution is not activated by this documentation. Use the owning prod
 
 ## Getting started
 
-Use the package manager matching the checked-in lockfile and the Node.js version declared in `engines` in `package.json`. Run from this repository:
+Use the package manager matching the checked-in lockfile and the Node.js version declared in `engines` in `package.json`. Run inside `packages/crowsi-interaction-transport` in the owning repository:
 
 ```sh
-npm ci --ignore-scripts
-npm run typecheck
-npm test
+npm ci --workspaces=false --ignore-scripts
+npm run typecheck --workspaces=false
+npm test --workspaces=false
 ```
 
 ## Documentation and source
