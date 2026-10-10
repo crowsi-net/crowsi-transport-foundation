@@ -1,22 +1,23 @@
+import type { ChildProcessWithoutNullStreams } from 'node:child_process'
+import { TransportError } from './errors.mjs'
+import type { RequestOptions, StdioOptions, StdioTransport } from './types/transport.mjs'
+import type { QueueItem } from './types/queue.mjs'
 import { spawn } from 'node:child_process'
 import path from 'node:path'
-
-export class TransportError extends Error {
-  constructor(code) { super(code); this.name = 'TransportError'; this.code = code }
-}
-
 /** One bounded JSONL channel; no application validation or retry of mutations. */
 export function createStdioTransport({command, args = [], env = process.env,
-  timeoutMs = 5000, maximumBytes = 1048576, maximumQueue = 32} = {}) {
+  timeoutMs = 5000, maximumBytes = 1048576, maximumQueue = 32}: StdioOptions): StdioTransport {
   if (!path.isAbsolute(command ?? '') || !Array.isArray(args) || args.some(a => typeof a !== 'string')
     || !Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 60000
     || !Number.isInteger(maximumBytes) || maximumBytes < 1 || maximumBytes > 1048576
     || !Number.isInteger(maximumQueue) || maximumQueue < 1 || maximumQueue > 128) throw new TransportError('transport/options/invalid')
-  let child, active, buffer = Buffer.alloc(0), closed = false, exitPromise, forceTimer
-  let disposed = false, reopening, inflight = 0
-  const queue = []
-  const error = code => new TransportError(code)
-  function finish(item, failure, value) {
+  let child: ChildProcessWithoutNullStreams | undefined, active: QueueItem | undefined
+  let buffer: Buffer<ArrayBufferLike> = Buffer.alloc(0), closed = false
+  let exitPromise: Promise<void> | undefined, forceTimer: ReturnType<typeof setTimeout> | undefined
+  let disposed = false, reopening: Promise<void> | undefined, inflight = 0
+  const queue: QueueItem[] = []
+  const error = (code: string) => new TransportError(code)
+  function finish(item: QueueItem, failure?: TransportError, value?: unknown) {
     clearTimeout(item.timer)
     item.signal?.removeEventListener('abort', item.abort)
     if (failure) item.reject(failure); else item.resolve(value)
@@ -29,11 +30,11 @@ export function createStdioTransport({command, args = [], env = process.env,
     buffer = Buffer.alloc(0)
     if (child) {
       const processToStop = child
-      const kill = signal => {
+      const kill = (signal: NodeJS.Signals) => {
         try {
-          if (process.platform !== 'win32') process.kill(-processToStop.pid, signal)
+          if (process.platform !== 'win32') processToStop.pid === undefined ? processToStop.kill(signal) : process.kill(-processToStop.pid, signal)
           else processToStop.kill(signal)
-        } catch (e) { if (e.code !== 'ESRCH') processToStop.kill(signal) }
+        } catch (e) { if (!(e instanceof Error && 'code' in e && e.code === 'ESRCH')) processToStop.kill(signal) }
       }
       kill('SIGTERM')
       forceTimer = setTimeout(() => kill('SIGKILL'), 200)
@@ -42,7 +43,7 @@ export function createStdioTransport({command, args = [], env = process.env,
   function start() {
     if (child) return
     child = spawn(command, args, {shell:false, env, detached:process.platform !== 'win32', stdio:['pipe','pipe','pipe']})
-    exitPromise = new Promise(resolve => child.once('close', () => {
+    exitPromise = new Promise<void>(resolve => child!.once('close', () => {
       clearTimeout(forceTimer); child = undefined
       stop(error('transport/process/exited')); resolve()
     }))
@@ -57,7 +58,7 @@ export function createStdioTransport({command, args = [], env = process.env,
       const end = buffer.indexOf(10)
       if (end < 0) return
       if (!active || end !== buffer.length - 1) { stop(error('transport/response/unsolicited')); return }
-      let value
+      let value: unknown
       try { value = JSON.parse(buffer.subarray(0, end).toString('utf8')) }
       catch { stop(error('transport/response/invalid')); return }
       buffer = Buffer.alloc(0)
@@ -67,20 +68,20 @@ export function createStdioTransport({command, args = [], env = process.env,
   }
   function pump() {
     if (closed || active || !queue.length) return
-    active = queue.shift()
-    try { start(); child.stdin.write(active.encoded) }
+    active = queue.shift()!
+    try { start(); child!.stdin.write(active.encoded) }
     catch { stop(error('transport/write/failed')) }
   }
-  function enqueue(value, {signal} = {}) {
+  function enqueue(value: unknown, {signal}: RequestOptions = {}): Promise<unknown> {
     if (closed) return Promise.reject(error('transport/closed'))
     if (signal?.aborted) return Promise.reject(error('transport/aborted'))
     let encoded
     try { encoded = JSON.stringify(value) }
     catch { return Promise.reject(error('transport/request/invalid')) }
     if (typeof encoded !== 'string' || Buffer.byteLength(encoded) > maximumBytes) return Promise.reject(error('transport/request/limit'))
-    return new Promise((resolve, reject) => {
-      const item = {encoded:encoded + '\n',resolve,reject,signal}
-      const cancel = code => {
+    return new Promise<unknown>((resolve, reject) => {
+      const item: QueueItem = {encoded:encoded + '\n',resolve,reject,signal,abort:() => {}}
+      const cancel = (code: string) => {
         if (active === item) stop(error(code))
         else {
           const index = queue.indexOf(item)
@@ -93,7 +94,7 @@ export function createStdioTransport({command, args = [], env = process.env,
       queue.push(item); pump()
     })
   }
-  async function request(value, options = {}) {
+  async function request(value: unknown, options: RequestOptions = {}): Promise<unknown> {
     if (disposed) throw error('transport/closed')
     if (inflight >= maximumQueue) throw error('transport/queue/full')
     inflight++

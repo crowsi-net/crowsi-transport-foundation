@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createStdioTransport } from '../src/stdio.mjs'
+import { createStdioTransport } from '../dist/stdio.mjs'
 
 const echo = `process.stdin.setEncoding('utf8');let b='';process.stdin.on('data',s=>{b+=s;let p;while((p=b.indexOf('\\n'))>=0){const l=b.slice(0,p);b=b.slice(p+1);process.stdout.write(l+'\\n')}})`
 test('bounded single process preserves payloads and disposes queued work', async () => {
