@@ -9,7 +9,7 @@ concurrency:
   group: product-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  verify:
+  test:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
