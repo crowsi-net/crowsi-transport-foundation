@@ -59,4 +59,4 @@ npm pack
 `prepack`は検査、build、runtime testsを実行します。公開前に、正確なarchiveをfresh consumerで確認してください。
 合成fetch/streamケースとloopback専用adapterで失敗経路を検証します。実TLS、browser cookie/CORS、顧客サービスとの互換性を示すものではありません。テストでは実providerの認証情報や外部mail APIを使いません。
 
-[使い方](https://github.com/crowsi-net/crowsi-provider-http-transport/blob/main/docs/getting-started.md) · [セキュリティ報告](SECURITY.md) · [Apache-2.0](LICENSE) · [帰属表示](NOTICE)
+[使い方](docs/getting-started.md) · [セキュリティ報告](SECURITY.md) · [Apache-2.0](LICENSE) · [帰属表示](NOTICE)
