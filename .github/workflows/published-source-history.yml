@@ -1,0 +1,36 @@
+name: Published provider source history
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  restore:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Restore original public source without executing it
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,subprocess,tempfile
+          from pathlib import Path
+          root=Path('source-history/crowsi-provider-http-transport')
+          record=json.loads((root/'source-record.json').read_text())
+          bundle=(root/'original.bundle').resolve()
+          assert hashlib.sha256(bundle.read_bytes()).hexdigest()==record['bundle_sha256']
+          with tempfile.TemporaryDirectory() as directory:
+              def git(*args):
+                  return subprocess.check_output(['git',*args],cwd=directory,stderr=subprocess.DEVNULL,text=True).strip()
+              git('init','--bare')
+              git('bundle','verify',str(bundle))
+              git('fetch',str(bundle),'+refs/*:refs/*')
+              for ref in record['refs']:
+                  assert git('rev-parse',ref['ref'])==ref['sha']
+              assert git('cat-file','-t','089469a09f98c0964a1a4ea36526d75157966821')=='commit'
+              assert git('rev-parse','refs/tags/v0.10.1^{commit}')=='089469a09f98c0964a1a4ea36526d75157966821'
+          print('Original published source commit and observed refs restored')
+          PY
