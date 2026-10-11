@@ -59,7 +59,7 @@ npm pack
 `prepack` runs checks, builds and runtime tests. Verify the exact archive in a fresh consumer before publication.
 Synthetic fetch/stream cases and a loopback-only adapter cover failure paths. The adapter does not establish real TLS, browser cookie/CORS or customer-service compatibility. Tests use no real provider credentials or external mail APIs.
 
-[Usage guide](https://github.com/crowsi-net/crowsi-provider-http-transport/blob/main/docs/getting-started.md) · [Security reporting](SECURITY.md) · [Apache-2.0 license](LICENSE) · [Attribution](NOTICE)
+[Usage guide](docs/getting-started.md) · [Security reporting](SECURITY.md) · [Apache-2.0 license](LICENSE) · [Attribution](NOTICE)
 
 ## Product responsibility
 
