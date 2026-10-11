@@ -67,3 +67,11 @@ test('in-flight success and error are suppressed after disposal, inactivity or a
     }
   }
 })
+
+test('oversized response returns even when cancel never settles', async () => {
+  const transport = createHttpTransport({endpoint:'/api', maximumBytes:8, fetch:async () => new Response(new ReadableStream<Uint8Array>({
+    start(controller) { controller.enqueue(new Uint8Array(9)) },
+    cancel() { return new Promise<void>(() => {}) }
+  }))})
+  await assert.rejects(Promise.race([transport.request({}), new Promise((_, reject) => setTimeout(() => reject(new Error('cleanup hung')), 250))]), {code:'transport/response/limit'})
+})

@@ -1,0 +1,38 @@
+name: Interaction transport package
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  consumer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        node: ['22', '24.15.0']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - name: Isolate npm configuration and cache
+        run: |
+          : > "$RUNNER_TEMP/empty-user.npmrc"
+          : > "$RUNNER_TEMP/empty-global.npmrc"
+          echo "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/empty-user.npmrc" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/empty-global.npmrc" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_CACHE=$RUNNER_TEMP/package-cache" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_REGISTRY=https://registry.npmjs.org" >> "$GITHUB_ENV"
+      - name: Validate maintained package
+        working-directory: packages/crowsi-interaction-transport
+        run: |
+          npm ci --workspaces=false --ignore-scripts --no-audit --no-fund
+          npm run --workspaces=false typecheck
+          npm run --workspaces=false test
+      - name: Verify real archive in independent consumer
+        run: node .github/scripts/packed-consumer.mjs

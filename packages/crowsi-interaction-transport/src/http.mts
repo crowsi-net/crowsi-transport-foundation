@@ -1,3 +1,4 @@
+import { releaseReader } from './cleanup.mjs'
 import type { EndpointHandler, EndpointOptions } from './types/transport.mjs'
 
 /** Web-standard adapter. Identity resolution is supplied by the host, not payloads. */
@@ -42,6 +43,6 @@ export function createJsonEndpoint(handler: EndpointHandler, {origins, maximumBy
         return new Response(body,{headers})
       })()])
     } catch (error) { return reject(503, error instanceof Error && error.message === 'transport/timeout' ? 'transport/timeout' : 'transport/unavailable') }
-    finally {clearTimeout(timer);request.signal.removeEventListener('abort',abort);await reader.cancel().catch(()=>{});reader.releaseLock()}
+    finally {clearTimeout(timer);request.signal.removeEventListener('abort',abort);await releaseReader(reader)}
   }
 }
