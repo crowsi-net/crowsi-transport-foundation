@@ -1,3 +1,4 @@
+import { releaseReader } from './cleanup.mjs'
 import { TransportError } from './errors.mjs'
 import type { HttpOptions, HttpTransport, RequestOptions, WatchOptions } from './types/transport.mjs'
 
@@ -54,8 +55,7 @@ export function createHttpTransport({endpoint, fetch:fetcher = globalThis.fetch,
       throw new TransportError('transport/unavailable')
     } finally {
       clearTimeout(timer); signal?.removeEventListener('abort', abort)
-      await reader?.cancel().catch(() => {})
-      reader?.releaseLock()
+      await releaseReader(reader)
     }
   }
   function watch(payload: () => unknown, onMessage: Parameters<HttpTransport['watch']>[1],
@@ -83,3 +83,5 @@ export function createHttpTransport({endpoint, fetch:fetcher = globalThis.fetch,
   }
   return {request, watch}
 }
+
+export type { HttpTransport, HttpOptions, RequestOptions, WatchOptions, WatchHandle, TransportFailure } from './types/transport.mjs'

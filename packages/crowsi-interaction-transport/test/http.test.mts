@@ -13,3 +13,11 @@ test('HTTP boundary preserves outcomes, bounds input and rejects cross-site acce
   assert.equal((await serve(request('x'.repeat(129)))).status,413)
   assert.equal(calls,1)
 })
+
+test('413 response returns even when request cancellation never settles', async () => {
+  const serve = createJsonEndpoint(async value => value, {origins:['http://localhost'],maximumBytes:8})
+  const body = new ReadableStream<Uint8Array>({start(controller) {controller.enqueue(new Uint8Array(9))}, cancel() {return new Promise<void>(() => {})}})
+  const request = new Request('http://localhost/api', {method:'POST',headers:{'content-type':'application/json'},body,duplex:'half'} as RequestInit)
+  const response = await Promise.race([serve(request),new Promise<never>((_,reject) => setTimeout(() => reject(new Error('cleanup hung')),250))])
+  assert.equal(response.status,413)
+})
