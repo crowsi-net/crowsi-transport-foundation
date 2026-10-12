@@ -12,15 +12,56 @@ concurrency:
   group: provider-http-publication
   cancel-in-progress: false
 jobs:
-  publish:
+  prepare:
     if: github.ref == 'refs/heads/main' && github.event.repository.private == false
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      sha256: ${{ steps.binding.outputs.sha256 }}
+      filename: ${{ steps.binding.outputs.filename }}
+    steps:
+      - name: Require exact reviewed source without publication identity
+        env:
+          EXPECTED_SHA: ${{ inputs.expected-source-sha }}
+        run: |
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ && "$EXPECTED_SHA" == "$GITHUB_SHA" ]]
+          test -z "$ACTIONS_ID_TOKEN_REQUEST_TOKEN"
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - run: npm install --global npm@12.2.0 --ignore-scripts
+      - name: Verify source and isolated candidate without OIDC
+        working-directory: packages/crowsi-provider-http-transport
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+          npm test
+          node ../../.github/scripts/provider-consumer.mjs
+      - name: Bind prepared archive
+        id: binding
+        working-directory: packages/crowsi-provider-http-transport
+        run: node ../../.github/scripts/prepare-provider-artifact.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        id: upload
+        with:
+          name: provider-prepared-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/provider-release/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+  publish:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: read
       id-token: write
     steps:
-      - name: Require reviewed main source and OIDC
+      - name: Recheck reviewed source and OIDC context
         env:
           EXPECTED_SHA: ${{ inputs.expected-source-sha }}
         run: |
@@ -34,29 +75,17 @@ jobs:
         with:
           node-version: '24.15.0'
           package-manager-cache: false
-      - run: npm install --global --ignore-scripts --no-audit --no-fund npm@12.2.0
-      - name: Build and test the source owned package
+      - run: npm install --global npm@12.2.0 --ignore-scripts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.prepare.outputs.artifact-id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/provider-release
+      - name: Publish only the exact prepared archive
         working-directory: packages/crowsi-provider-http-transport
         env:
+          EXPECTED_ARCHIVE_SHA256: ${{ needs.prepare.outputs.sha256 }}
+          PREPARED_FILENAME: ${{ needs.prepare.outputs.filename }}
           NODE_AUTH_TOKEN: ''
           NPM_TOKEN: ''
-        run: |
-          : > "$RUNNER_TEMP/empty.npmrc"
-          export NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/empty.npmrc"
-          export NPM_CONFIG_REGISTRY=https://registry.npmjs.org
-          npm ci --ignore-scripts --workspaces=false
-          npm run check --workspaces=false
-          npm test --workspaces=false
-          npm pack --ignore-scripts --workspaces=false
-          sha256sum crowsi-provider-http-transport-0.11.2.tgz
-      - name: Verify the packed public consumer before publishing
-        run: node .github/scripts/provider-consumer.mjs
-      - name: Publish the tested archive with provenance
-        working-directory: packages/crowsi-provider-http-transport
-        env:
-          NODE_AUTH_TOKEN: ''
-          NPM_TOKEN: ''
-        run: |
-          export NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/empty.npmrc"
-          export NPM_CONFIG_REGISTRY=https://registry.npmjs.org
-          npm publish crowsi-provider-http-transport-0.11.2.tgz --access public --provenance
+        run: node ../../.github/scripts/publish-provider.mjs "$RUNNER_TEMP/provider-release/$PREPARED_FILENAME"
