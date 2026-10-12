@@ -4,7 +4,6 @@ import { createProviderHttpTransport } from './index.mjs'
 import { digest, prepare, verifyPlan } from './local-plan.mjs'
 import type { LocalControlOptions, LocalPlan } from './local-contracts.mjs'
 export type { BoundRequest, CredentialSource, LocalAccount, LocalOperation, LocalPlan } from './local-contracts.mjs'
-
 /** Trusted owner composition. Give generated code only an execute port, never approve/credentials. */
 export function createLocalProviderControl(options: LocalControlOptions) {
   if (Object.keys(options.account).sort().join(',') !== 'account,provider,subject')
@@ -74,7 +73,12 @@ export function createLocalProviderControl(options: LocalControlOptions) {
       } catch {
         throw new Error('provider/credential/unavailable')
       }
-      if (typeof credential !== 'string' || !/^[!-~]{16,16384}$/.test(credential)) {
+      if (
+        typeof credential !== 'string' ||
+        credential.length < 16 ||
+        credential.length > 16384 ||
+        !/^[A-Za-z0-9._~+/-]+=*$/.test(credential)
+      ) {
         throw new Error('provider/credential/invalid')
       }
       if (!Number.isSafeInteger(clock()) || clock() < grant.issued || clock() >= grant.expires)
@@ -97,6 +101,7 @@ export function createLocalProviderControl(options: LocalControlOptions) {
       } catch {
         throw new Error('provider/response/not-json')
       }
+      if (JSON.stringify(data).includes(credential)) throw new Error('provider/response/credential-rejected')
       return Object.freeze({
         schema: 'crowsi://provider-operation-receipt/v1',
         operation: plan.operation,

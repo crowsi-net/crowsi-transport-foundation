@@ -48,5 +48,5 @@ jobs:
           npm run check --workspaces=false
           npm test --workspaces=false
           npm pack --ignore-scripts --workspaces=false
-          sha256sum crowsi-provider-http-transport-0.11.0.tgz
-          npm publish crowsi-provider-http-transport-0.11.0.tgz --access public --provenance
+          sha256sum crowsi-provider-http-transport-0.11.1.tgz
+          npm publish crowsi-provider-http-transport-0.11.1.tgz --access public --provenance

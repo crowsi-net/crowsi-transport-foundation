@@ -100,3 +100,10 @@ test('refuses redirects and oversized provider responses', async () => {
   g.setResponse(() => new Response('x'.repeat(1048577)))
   await assert.rejects(g.control.execute(g.grant.id, g.plan), /request\/unavailable/)
 })
+
+test('rejects a bearer credential echoed using JSON Unicode escapes', async () => {
+  const f = fixture()
+  const escaped = [...token].map((character) => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`).join('')
+  f.setResponse(() => new Response(`{"echo":"${escaped}"}`, { status: 200 }))
+  await assert.rejects(f.control.execute(f.grant.id, f.plan), /credential-rejected/)
+})
