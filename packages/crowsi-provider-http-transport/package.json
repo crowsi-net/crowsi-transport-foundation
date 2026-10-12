@@ -1,6 +1,6 @@
 {
   "name": "@crowsi/provider-http-transport",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "type": "module",
   "license": "Apache-2.0",
   "description": "Bounded browser HTTP egress transport with explicit destination ownership",
@@ -11,6 +11,10 @@
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
+    },
+    "./local-control": {
+      "types": "./dist/local-control.d.mts",
+      "import": "./dist/local-control.mjs"
     }
   },
   "files": [

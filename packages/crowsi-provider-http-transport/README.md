@@ -64,3 +64,27 @@ Synthetic fetch/stream cases and a loopback-only adapter cover failure paths. Th
 ## Product responsibility
 
 This component is maintained in [crowsi-net/crowsi-transport-foundation](https://github.com/crowsi-net/crowsi-transport-foundation). Use the [product README](../../README.md) for composition, use cases and trust boundaries.
+
+## Local administrator control (Node 24)
+
+The `./local-control` entrypoint binds an account and reviewed operation catalog
+into exact request plans. The trusted owner approves a plan for at most five
+minutes. Execute consumes the opaque grant before acquiring any bearer material;
+failures also consume it. Unknown operations, changed requests, replay, expiry,
+redirects and unbounded responses fail closed. Provider errors are not echoed.
+A successful request does not prove a complete permission inventory.
+
+`prepare`, `approve`, `revoke` and `execute` belong to the owner composition.
+Give generated code only a restricted execute port and a reviewed grant, never
+approve, credential sources, or the mutable host environment. This library is
+not a process sandbox or a credential daemon. Use the Crowsi workload/custody
+boundary when executing untrusted code. JavaScript credential strings are held
+inside the trusted host and cannot guarantee native-memory zeroization.
+
+Tests use injected credentials and fake HTTP only; no real login, keyring,
+provider account or billing operation is exercised. The explicit owner-only
+local command/keyring adapters are opt-in and never run on import.
+
+The generic broker supports JSON responses, one bounded HTTP request per grant,
+and no automatic pagination or polling. Each follow-up requires another plan
+and grant. Binary finance reports require a separately reviewed decoder.
