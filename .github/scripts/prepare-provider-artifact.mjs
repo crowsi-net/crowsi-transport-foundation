@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 const directory=join(process.env.RUNNER_TEMP,'provider-release')
 mkdirSync(directory,{recursive:true})
-const result=JSON.parse(execFileSync('npm',['pack','--ignore-scripts','--json','--pack-destination',directory]))
+const result=JSON.parse(execFileSync('npm',['pack','--ignore-scripts','--workspaces=false','--json','--pack-destination',directory]))
 const rows=Array.isArray(result)?result:Object.values(result)
 if(rows.length!==1 || !/^[a-z0-9.-]+\.tgz$/.test(rows[0].filename))throw new Error('One regular candidate required')
 const sha=createHash('sha256').update(readFileSync(join(directory,rows[0].filename))).digest('hex')

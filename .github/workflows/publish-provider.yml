@@ -38,9 +38,9 @@ jobs:
       - name: Verify source and isolated candidate without OIDC
         working-directory: packages/crowsi-provider-http-transport
         run: |
-          npm ci --ignore-scripts
-          npm run check
-          npm test
+          npm ci --ignore-scripts --workspaces=false
+          npm run check --workspaces=false
+          npm test --workspaces=false
           node ../../.github/scripts/provider-consumer.mjs
       - name: Bind prepared archive
         id: binding
