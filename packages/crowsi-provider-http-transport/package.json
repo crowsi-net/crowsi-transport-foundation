@@ -22,7 +22,8 @@
     "README.md",
     "SECURITY.md",
     "LICENSE",
-    "NOTICE"
+    "NOTICE",
+    "README.ja.md"
   ],
   "scripts": {
     "format": "biome format --write src test scripts",
