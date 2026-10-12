@@ -36,7 +36,7 @@ jobs:
           echo "NPM_CONFIG_CACHE=$RUNNER_TEMP/release-cache" >> "$GITHUB_ENV"
           echo "NPM_CONFIG_REGISTRY=https://registry.npmjs.org" >> "$GITHUB_ENV"
       - name: Install pinned package tools without lifecycle hooks
-        run: npm install --global --ignore-scripts --no-audit --no-fund npm@11.12.1 pnpm@10.29.3
+        run: npm install --global --ignore-scripts --no-audit --no-fund npm@12.2.0 pnpm@10.29.3
       - name: Validate isolated package and dependencies
         working-directory: packages/crowsi-provider-http-transport
         run: |

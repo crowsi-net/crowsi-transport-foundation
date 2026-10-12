@@ -35,7 +35,7 @@ jobs:
           node-version: '24.15.0'
           package-manager-cache: false
       - run: npm install --global --ignore-scripts --no-audit --no-fund npm@12.2.0
-      - name: Build, test and publish the exact archive
+      - name: Build and test the source owned package
         working-directory: packages/crowsi-provider-http-transport
         env:
           NODE_AUTH_TOKEN: ''
@@ -48,5 +48,15 @@ jobs:
           npm run check --workspaces=false
           npm test --workspaces=false
           npm pack --ignore-scripts --workspaces=false
-          sha256sum crowsi-provider-http-transport-0.11.1.tgz
-          npm publish crowsi-provider-http-transport-0.11.1.tgz --access public --provenance
+          sha256sum crowsi-provider-http-transport-0.11.2.tgz
+      - name: Verify the packed public consumer before publishing
+        run: node .github/scripts/provider-consumer.mjs
+      - name: Publish the tested archive with provenance
+        working-directory: packages/crowsi-provider-http-transport
+        env:
+          NODE_AUTH_TOKEN: ''
+          NPM_TOKEN: ''
+        run: |
+          export NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/empty.npmrc"
+          export NPM_CONFIG_REGISTRY=https://registry.npmjs.org
+          npm publish crowsi-provider-http-transport-0.11.2.tgz --access public --provenance

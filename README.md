@@ -53,6 +53,8 @@ Apache-2.0. Retain the package LICENSE and NOTICE; see the source repository for
 
 ## Node implementation
 
+See the [local operation playground](playground/local-control/README.md) for a packed, independent read/write consumer and replay/credential rejection examples. Owner CI verifies this public entrypoint before provider package publication.
+
 The repository also contains a separate Node transport implementation. Its npm package is a distinct distribution; installing this Rust crate does not install the Node implementation.
 
 
