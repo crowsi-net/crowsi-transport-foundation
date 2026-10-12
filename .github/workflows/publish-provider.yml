@@ -1,0 +1,52 @@
+name: Publish provider HTTP control with OIDC
+on:
+  workflow_dispatch:
+    inputs:
+      expected-source-sha:
+        type: string
+        required: true
+        description: Reviewed main SHA
+permissions:
+  contents: read
+concurrency:
+  group: provider-http-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Require reviewed main source and OIDC
+        env:
+          EXPECTED_SHA: ${{ inputs.expected-source-sha }}
+        run: |
+          [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ && "$EXPECTED_SHA" == "$GITHUB_SHA" ]]
+          test -n "$ACTIONS_ID_TOKEN_REQUEST_URL"
+          test -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN"
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - run: npm install --global --ignore-scripts --no-audit --no-fund npm@12.2.0
+      - name: Build, test and publish the exact archive
+        working-directory: packages/crowsi-provider-http-transport
+        env:
+          NODE_AUTH_TOKEN: ''
+          NPM_TOKEN: ''
+        run: |
+          : > "$RUNNER_TEMP/empty.npmrc"
+          export NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/empty.npmrc"
+          export NPM_CONFIG_REGISTRY=https://registry.npmjs.org
+          npm ci --ignore-scripts --workspaces=false
+          npm run check --workspaces=false
+          npm test --workspaces=false
+          npm pack --ignore-scripts --workspaces=false
+          sha256sum crowsi-provider-http-transport-0.11.0.tgz
+          npm publish crowsi-provider-http-transport-0.11.0.tgz --access public --provenance
