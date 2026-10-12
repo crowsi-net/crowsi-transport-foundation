@@ -1,0 +1,34 @@
+name: Provider archive consumer
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  consumer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - name: Use public registry configuration
+        run: |
+          : > "$RUNNER_TEMP/user.npmrc"
+          : > "$RUNNER_TEMP/global.npmrc"
+          echo "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/user.npmrc" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/global.npmrc" >> "$GITHUB_ENV"
+          echo "NPM_CONFIG_CACHE=$RUNNER_TEMP/public-cache" >> "$GITHUB_ENV"
+      - name: Build the source owned package
+        working-directory: packages/crowsi-provider-http-transport
+        run: |
+          npm ci --ignore-scripts --workspaces=false
+          npm run check --workspaces=false
+          npm test --workspaces=false
+      - name: Verify independent public archive imports
+        run: node .github/scripts/provider-consumer.mjs

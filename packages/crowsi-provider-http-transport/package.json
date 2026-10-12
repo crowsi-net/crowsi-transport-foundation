@@ -1,6 +1,6 @@
 {
   "name": "@crowsi/provider-http-transport",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "type": "module",
   "license": "Apache-2.0",
   "description": "Bounded browser HTTP egress transport with explicit destination ownership",
@@ -40,7 +40,7 @@
     "url": "git+https://github.com/crowsi-net/crowsi-transport-foundation.git",
     "directory": "packages/crowsi-provider-http-transport"
   },
-  "packageManager": "npm@11.12.1",
+  "packageManager": "npm@12.2.0",
   "homepage": "https://github.com/crowsi-net/crowsi-transport-foundation/tree/main/packages/crowsi-provider-http-transport",
   "bugs": {
     "url": "https://github.com/crowsi-net/crowsi-transport-foundation/issues"

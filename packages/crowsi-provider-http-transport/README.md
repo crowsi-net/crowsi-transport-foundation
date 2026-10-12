@@ -2,14 +2,14 @@
 
 [日本語](README.ja.md)
 
-Use bounded HTTP requests with an explicit HTTPS-origin policy, request/response byte limits and a timeout. This package includes no product API, authentication scheme, account storage or persistence.
+Use bounded HTTP requests with an explicit HTTPS-origin policy, request/response byte limits and a timeout. The base transport owns bounded HTTP. The Node-only local-control entrypoint composes reviewed operations with account/request-bound grants and injected credentials; it does not own product APIs, account storage or a native custody service.
 
 ## Install and use
 
-Version `0.10.0` is published on npm. Configure the transport with the application's reviewed destination and authentication policy.
+Release version: `0.11.2`. Verify registry availability and provenance before adoption. Configure the transport with the application's reviewed destination and authentication policy.
 
 ```sh
-npm install --save-exact @crowsi/provider-http-transport@0.10.0
+npm install --save-exact @crowsi/provider-http-transport@0.11.2
 ```
 
 ```js
@@ -45,7 +45,7 @@ Timeout bounds asynchronous I/O waiting, not real elapsed time during event-loop
 
 ## Development and verification
 
-Runtime: Node.js 22+. Release checks use Node.js 24.15.0 and npm 11.12.1.
+Runtime: Node.js 22+. Release checks use Node.js 24.15.0 and npm 12.2.0.
 
 ```sh
 npm ci
@@ -56,7 +56,7 @@ npm pack
 
 `src/*.mts` is the typed implementation. `npm run build` generates `dist/*.mjs` and declarations together; do not edit or commit them.
 `npm run check` verifies Biome format/lint, strict implementation and consumer types, and the requested 120 physical-line limit. The internal rule is 149 non-empty/non-comment lines; these checks enforce the stricter physical limit.
-`prepack` runs checks, builds and runtime tests. Verify the exact archive in a fresh consumer before publication.
+`prepack` runs checks, builds and runtime tests. Owner CI additionally packs the archive, installs it outside the checkout and verifies public types, read/write/read-back, replay rejection and escaped credential rejection before publication. Verify the exact archive in a fresh consumer before publication.
 Synthetic fetch/stream cases and a loopback-only adapter cover failure paths. The adapter does not establish real TLS, browser cookie/CORS or customer-service compatibility. Tests use no real provider credentials or external mail APIs.
 
 [Usage guide](docs/getting-started.md) · [Security reporting](SECURITY.md) · [Apache-2.0 license](LICENSE) · [Attribution](NOTICE)

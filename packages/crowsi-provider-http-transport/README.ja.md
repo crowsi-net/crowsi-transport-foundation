@@ -2,14 +2,14 @@
 
 [English](README.md)
 
-許可したHTTPS originへ、request/responseのbyte上限とtimeout付きでHTTP通信を行います。製品API、認証方式、アカウント、データ保存は含みません。
+許可したHTTPS originへ、request/responseのbyte上限とtimeout付きでHTTP通信を行います。base transportはbounded HTTPを所有します。Node専用local-controlは確認済み操作、account/request束縛、期限付きgrant、注入credentialを組み合わせます。製品API、account保存、native custody serviceは所有しません。
 
 ## 導入と使い方
 
-`0.10.0`はnpmで公開済みです。実際の接続先と認証方針は、利用アプリの所有者が確認して設定してください。
+このsourceのrelease対象は`0.11.2`です。採用前に公式registryの取得とprovenanceを確認してください。実際の接続先と認証方針は、利用アプリの所有者が確認して設定してください。
 
 ```sh
-npm install --save-exact @crowsi/provider-http-transport@0.10.0
+npm install --save-exact @crowsi/provider-http-transport@0.11.2
 ```
 
 ```js
@@ -45,7 +45,7 @@ timeoutは非同期I/O待ちを制限します。event loop停止やbrowser休�
 
 ## 開発と検証
 
-runtimeはNode.js 22以降です。リリース検査はNode.js 24.15.0、npm 11.12.1を使用します。
+runtimeはNode.js 22以降です。リリース検査はNode.js 24.15.0、npm 12.2.0を使用します。
 
 ```sh
 npm ci
@@ -60,3 +60,7 @@ npm pack
 合成fetch/streamケースとloopback専用adapterで失敗経路を検証します。実TLS、browser cookie/CORS、顧客サービスとの互換性を示すものではありません。テストでは実providerの認証情報や外部mail APIを使いません。
 
 [使い方](docs/getting-started.md) · [セキュリティ報告](SECURITY.md) · [Apache-2.0](LICENSE) · [帰属表示](NOTICE)
+
+## ローカル操作と独立consumer
+
+[playground](https://github.com/crowsi-net/crowsi-transport-foundation/tree/main/playground/local-control)はTGZをcheckout外へ導入し、公開型・変更/読戻し・replay拒否・credential反射拒否を確認します。owner CIと公開workflowが同じ例を実行します。実account、keyring、cloud操作は行いません。Nodeメモリ内grantと署名付き永続native認可、OS sandboxは別の保証です。
