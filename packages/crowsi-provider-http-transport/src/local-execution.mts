@@ -13,7 +13,7 @@ export interface Grant {
 /** An aborted/disconnected write may already have committed; never retry it automatically. */
 export class ProviderExecutionError extends Error {
   constructor(
-    code: string,
+    readonly code: string,
     readonly outcome: 'not-started' | 'not-completed' | 'indeterminate-write',
   ) {
     super(code)

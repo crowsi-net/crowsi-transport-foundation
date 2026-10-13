@@ -11,6 +11,7 @@ export function checkedOperations(input: readonly LocalOperation[]): readonly Lo
       if (
         !operation ||
         typeof operation.build !== 'function' ||
+        typeof operation.id !== 'string' ||
         !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(operation.id) ||
         !['read', 'write'].includes(operation.effect) ||
         !Array.isArray(operation.requiredPermissions) ||
