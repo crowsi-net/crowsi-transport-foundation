@@ -48,6 +48,16 @@ export function createLocalProviderControl(options: LocalControlOptions) {
     return now
   }
   return Object.freeze({
+    describe() {
+      return Object.freeze({
+        account,
+        origins: Object.freeze([...origins]),
+        permissionState: 'not-observed' as const,
+        operations: Object.freeze(
+          operations.map(({ id, effect, requiredPermissions }) => Object.freeze({ id, effect, requiredPermissions })),
+        ),
+      })
+    },
     prepare(id: string, input: unknown) {
       const now = prune()
       if (plans.size >= 128) throw new Error('provider/plan/capacity')

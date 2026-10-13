@@ -43,7 +43,9 @@ export function createExecutePort(control: Control, clock: () => number = Date.n
       if (
         Object.keys(value).sort().join(',') !== 'grantId,requestDigest' ||
         typeof value.grantId !== 'string' ||
-        typeof value.requestDigest !== 'string'
+        typeof value.requestDigest !== 'string' ||
+        value.grantId.length !== 36 ||
+        !/^[a-f0-9]{64}$/.test(value.requestDigest)
       )
         throw new Error('provider/execute-port/rejected')
       const known = permits.get(value.grantId)

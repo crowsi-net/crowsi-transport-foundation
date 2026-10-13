@@ -29,7 +29,7 @@ const result = await transport.request({ url: 'https://provider.example/items' }
 - Origins must be canonical HTTPS origins without a path, trailing slash or userinfo. Reject HTTP, other origins or ports, URL credentials, fragments and redirects.
 - Admit only GET, POST, PATCH, PUT and DELETE. GET and DELETE cannot carry a body.
 - Measure strings, URLSearchParams, ArrayBuffer/views and Blob by their actual byte size. Reject unmeasurable bodies such as FormData and streams in both the public type contract and runtime checks. Mutable URLSearchParams/buffer/view bodies are copied before asynchronous dispatch.
-- Byte limits range from 1 byte through 16 MiB. Timeout ranges from 1 through 60000 ms. Defaults are 64 KiB requests, 1 MiB responses and 15000 ms.
+- Response streams accept at most 4096 byte chunks, including empty chunks; non-byte or excessively fragmented streams are rejected. Chunks are copied before the producer can reuse their buffer. Byte limits range from 1 byte through 16 MiB. Timeout ranges from 1 through 60000 ms. Defaults are 64 KiB requests, 1 MiB responses and 15000 ms.
 
 Responses return `status`, `statusText`, `Headers` and a `Uint8Array` body. The application interprets HTTP error statuses.
 Stalled fetch/body waits settle on abort or timeout. Best-effort stream cancellation cleanup does not block completion.
@@ -101,3 +101,5 @@ and grant. Binary finance reports require a separately reviewed decoder.
 ## Execute-only worker port (new source API)
 
 `./execute-port` exposes `createExecutePort(control)`. The owner registers an exact approved plan/permit and gives the isolated worker only `{ grantId, requestDigest }` plus the handle transport. Registration, approval, credential sources and revoke remain owner-only. Extra fields, substituted digests, unknown/revoked grants and replay are rejected. See [composition and playground](docs/execute-port.md). This new entrypoint is not contained in the published 0.11.2 archive; the isolated candidate consumer verifies the changed source before a new release.
+
+`control.describe()` returns the copied account/origin/operation catalog without acquiring credentials or making HTTP requests. Its permission state is `not-observed`: declared requirements are not effective IAM rights. Give this catalog to the trusted administrator UI, while generated workers receive only the registered execute request.

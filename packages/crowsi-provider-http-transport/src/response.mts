@@ -18,9 +18,12 @@ export async function readBounded(response: Response, maximumBytes: number, sign
       const part = await abortable(reader.read(), signal)
       if (signal.aborted) throw new ProviderTransportError('transport/request/aborted')
       if (part.done) break
+      if (!(part.value instanceof Uint8Array) || parts.length >= 4096) {
+        throw new ProviderTransportError('transport/response/chunk/rejected')
+      }
       size += part.value.byteLength
       if (size > maximumBytes) throw new ProviderTransportError('transport/response/limit')
-      parts.push(part.value)
+      parts.push(part.value.slice())
     }
   } finally {
     try {
