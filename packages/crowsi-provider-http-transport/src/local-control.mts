@@ -1,7 +1,11 @@
 import { randomUUID } from 'node:crypto'
-import type { ProviderHttpResponse } from './contracts.mjs'
 import { createProviderHttpTransport } from './index.mjs'
 import { digest, prepare, verifyPlan } from './local-plan.mjs'
+import { checkedOrigins } from './policy.mjs'
+import { checkedOperations } from './local-catalog.mjs'
+import { executeGrant } from './local-execution.mjs'
+import type { Grant } from './local-execution.mjs'
+export { ProviderExecutionError } from './local-execution.mjs'
 import type { LocalControlOptions, LocalPlan } from './local-contracts.mjs'
 export type { BoundRequest, CredentialSource, LocalAccount, LocalOperation, LocalPlan } from './local-contracts.mjs'
 /** Trusted owner composition. Give generated code only an execute port, never approve/credentials. */
@@ -12,30 +16,44 @@ export function createLocalProviderControl(options: LocalControlOptions) {
   if (Object.values(account).some((value) => typeof value !== 'string' || !value || value.length > 256)) {
     throw new Error('provider/account/invalid')
   }
-  const operations = [...options.operations]
-  if (new Set(operations.map((item) => item.id)).size !== operations.length)
-    throw new Error('provider/operation/duplicate')
+  const operations = checkedOperations(options.operations)
+  const origins = checkedOrigins(options.allowedOrigins)
+  if (typeof options.credentials?.acquire !== 'function') throw new Error('provider/credentials/invalid')
+  const acquire = options.credentials.acquire.bind(options.credentials)
   const clock = options.clock ?? Date.now
   const transport = createProviderHttpTransport({
-    allowedOrigins: [...options.allowedOrigins],
+    allowedOrigins: [...origins],
     maximumRequestBytes: 65536,
     maximumResponseBytes: 1048576,
     timeoutMs: 15000,
     fetchImplementation: options.fetchImplementation,
   })
-  const plans = new Map<string, LocalPlan>()
-  const grants = new Map<string, { plan: LocalPlan; expires: number; issued: number }>()
+  const plans = new Map<string, { plan: LocalPlan; created: number }>()
+  const grants = new Map<string, Grant>()
+  const active = new Map<string, AbortController>()
+  const prune = () => {
+    const now = clock()
+    if (!Number.isSafeInteger(now)) throw new Error('provider/clock/invalid')
+    for (const [id, value] of grants) if (now < value.issued || now >= value.expires) grants.delete(id)
+    for (const [id, value] of plans) if (now < value.created || now - value.created >= 300000) plans.delete(id)
+    return now
+  }
   return Object.freeze({
     prepare(id: string, input: unknown) {
+      const now = prune()
       if (plans.size >= 128) throw new Error('provider/plan/capacity')
       const plan = prepare(account, operations, id, input)
       // Validate destination before acquiring any credential.
       const url = new URL(plan.request.url)
-      if (!options.allowedOrigins.includes(url.origin)) throw new Error('provider/destination/rejected')
-      plans.set(plan.digest, plan)
+      if (!origins.has(url.origin)) throw new Error('provider/destination/rejected')
+      plans.set(plan.digest, { plan, created: now })
       return plan
     },
+    discard(digest: string) {
+      plans.delete(digest)
+    },
     approve(plan: LocalPlan, expires: number) {
+      prune()
       verifyPlan(plan)
       const known = plans.get(plan.digest)
       if (!known || digest(account) !== digest(plan.account)) throw new Error('provider/plan/unknown')
@@ -45,73 +63,19 @@ export function createLocalProviderControl(options: LocalControlOptions) {
       }
       if (grants.size >= 128) throw new Error('provider/grant/capacity')
       const id = randomUUID()
-      grants.set(id, { plan: known, expires, issued: now })
+      grants.set(id, { plan: known.plan, expires, issued: now })
       plans.delete(plan.digest)
       return Object.freeze({ id, digest: plan.digest, expires })
     },
     revoke(id: string) {
       grants.delete(id)
+      active.get(id)?.abort()
     },
     async execute(id: string, plan: LocalPlan) {
       const grant = grants.get(id)
       if (!grant) throw new Error('provider/grant/unknown')
-      // Reserve synchronously: concurrent calls cannot reuse a grant; failures consume it too.
       grants.delete(id)
-      verifyPlan(plan)
-      const now = clock()
-      if (
-        !Number.isSafeInteger(now) ||
-        now < grant.issued ||
-        now >= grant.expires ||
-        digest(grant.plan) !== digest(plan)
-      ) {
-        throw new Error('provider/grant/rejected')
-      }
-      let credential: string
-      try {
-        credential = await options.credentials.acquire(account)
-      } catch {
-        throw new Error('provider/credential/unavailable')
-      }
-      if (
-        typeof credential !== 'string' ||
-        credential.length < 16 ||
-        credential.length > 16384 ||
-        !/^[A-Za-z0-9._~+/-]+=*$/.test(credential)
-      ) {
-        throw new Error('provider/credential/invalid')
-      }
-      if (!Number.isSafeInteger(clock()) || clock() < grant.issued || clock() >= grant.expires)
-        throw new Error('provider/grant/expired')
-      let response: ProviderHttpResponse
-      try {
-        response = await transport.request({
-          ...grant.plan.request,
-          headers: { Authorization: `Bearer ${credential}`, 'Content-Type': 'application/json' },
-        })
-      } catch {
-        throw new Error('provider/request/unavailable')
-      }
-      if (response.status < 200 || response.status >= 300) throw new Error(`provider/http/${response.status}`)
-      const text = new TextDecoder('utf-8', { fatal: true }).decode(response.body)
-      if (text.includes(credential)) throw new Error('provider/response/credential-rejected')
-      let data: unknown
-      try {
-        data = JSON.parse(text)
-      } catch {
-        throw new Error('provider/response/not-json')
-      }
-      if (JSON.stringify(data).includes(credential)) throw new Error('provider/response/credential-rejected')
-      return Object.freeze({
-        schema: 'crowsi://provider-operation-receipt/v1',
-        operation: plan.operation,
-        requestDigest: plan.digest,
-        responseDigest: digest(data),
-        observedAt: clock(),
-        status: response.status,
-        permissionState: 'not-inferred' as const,
-        data,
-      })
+      return executeGrant(id, grant, plan, account, clock, acquire, transport, active)
     },
   })
 }

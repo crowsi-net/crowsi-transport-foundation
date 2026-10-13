@@ -14,7 +14,7 @@ export function prepare(
   if (!operation) throw new Error('provider/operation/unsupported')
   const built = operation.build(structuredClone(input), account)
   if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(built.method)) throw new Error('provider/method/rejected')
-  if (built.method === 'GET' && built.body !== undefined) throw new Error('provider/body/rejected')
+  if (['GET', 'DELETE'].includes(built.method) && built.body !== undefined) throw new Error('provider/body/rejected')
   if (built.body !== undefined && (typeof built.body !== 'string' || Buffer.byteLength(built.body) > 65536)) {
     throw new Error('provider/body/rejected')
   }

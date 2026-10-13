@@ -74,7 +74,16 @@ failures also consume it. Unknown operations, changed requests, replay, expiry,
 redirects and unbounded responses fail closed. Provider errors are not echoed.
 A successful request does not prove a complete permission inventory.
 
-`prepare`, `approve`, `revoke` and `execute` belong to the owner composition.
+A grant remains revocable while credential acquisition or HTTP execution is in flight.
+Revocation signals cancellation and suppresses a successful receipt; it cannot undo
+a remote write already dispatched. `ProviderExecutionError.outcome` distinguishes
+`not-started`, `not-completed` and `indeterminate-write`. Read back the actual
+provider state before considering a retry of an indeterminate write.
+HTTP 204/205 produces `data: null`; unexpected nonempty bodies are rejected.
+Operation metadata and origin policy are copied at registration. `discard`
+removes an unused plan; abandoned plans expire after five minutes.
+
+`prepare`, `discard`, `approve`, `revoke` and `execute` belong to the owner composition.
 Give generated code only a restricted execute port and a reviewed grant, never
 approve, credential sources, or the mutable host environment. This library is
 not a process sandbox or a credential daemon. Use the Crowsi workload/custody
