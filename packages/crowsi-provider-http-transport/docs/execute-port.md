@@ -9,3 +9,5 @@ The owner chooses the clock and transport, bounds raw IPC bytes before JSON deco
 The repository playground `playground/execute-port/demo.mjs` performs a synthetic write/read-back and rejects injected approval and replay. `.github/scripts/provider-consumer.mjs` installs the packed candidate outside the checkout and runs that public import example with strict type checks. Unit tests additionally reject account/credential fields, digest substitution, duplicate registration and revocation. No live credentials or network are used.
 
 This is new source API pending a reviewed new package release. The published 0.11.2 artifact is immutable and does not contain this entrypoint.
+
+The native playground and archive consumer CI also run that actual OS boundary with a separately pinned sandbox helper. They verify host-file, environment and direct-network denial alongside the synthetic owner write/read-back. This is a source integration check, not a live cloud acceptance.
