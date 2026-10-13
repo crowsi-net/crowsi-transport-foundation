@@ -33,6 +33,8 @@ try {
     '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', 'consumer.mts'], consumer)
   cpSync(join(source, 'playground/local-control/demo.mjs'), join(consumer, 'consumer.mjs'))
   process.stdout.write(run(process.execPath, ['consumer.mjs'], consumer))
+  cpSync(join(source, 'playground/execute-port/demo.mjs'), join(consumer, 'execute-port.mjs'))
+  process.stdout.write(run(process.execPath, ['execute-port.mjs'], consumer))
   console.log('Provider archive consumer: public types, read/write/read-back, replay and secret rejection passed')
 } finally {
   rmSync(root, { recursive: true, force: true })

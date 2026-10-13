@@ -15,6 +15,10 @@
     "./local-control": {
       "types": "./dist/local-control.d.mts",
       "import": "./dist/local-control.mjs"
+    },
+    "./execute-port": {
+      "types": "./dist/execute-port.d.mts",
+      "import": "./dist/execute-port.mjs"
     }
   },
   "files": [
@@ -23,7 +27,8 @@
     "SECURITY.md",
     "LICENSE",
     "NOTICE",
-    "README.ja.md"
+    "README.ja.md",
+    "docs"
   ],
   "scripts": {
     "format": "biome format --write src test scripts",

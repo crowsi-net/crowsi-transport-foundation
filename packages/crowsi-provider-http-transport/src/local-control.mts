@@ -13,7 +13,16 @@ export function createLocalProviderControl(options: LocalControlOptions) {
   if (Object.keys(options.account).sort().join(',') !== 'account,provider,subject')
     throw new Error('provider/account/invalid')
   const account = Object.freeze({ ...options.account })
-  if (Object.values(account).some((value) => typeof value !== 'string' || !value || value.length > 256)) {
+  if (
+    Object.values(account).some(
+      (value) =>
+        typeof value !== 'string' ||
+        !value ||
+        value.length > 256 ||
+        value.trim() !== value ||
+        [...value].some((c) => c.charCodeAt(0) < 32),
+    )
+  ) {
     throw new Error('provider/account/invalid')
   }
   const operations = checkedOperations(options.operations)
@@ -33,7 +42,7 @@ export function createLocalProviderControl(options: LocalControlOptions) {
   const active = new Map<string, AbortController>()
   const prune = () => {
     const now = clock()
-    if (!Number.isSafeInteger(now)) throw new Error('provider/clock/invalid')
+    if (!Number.isSafeInteger(now) || now < 0) throw new Error('provider/clock/invalid')
     for (const [id, value] of grants) if (now < value.issued || now >= value.expires) grants.delete(id)
     for (const [id, value] of plans) if (now < value.created || now - value.created >= 300000) plans.delete(id)
     return now

@@ -28,7 +28,7 @@ const result = await transport.request({ url: 'https://provider.example/items' }
 
 - Origins must be canonical HTTPS origins without a path, trailing slash or userinfo. Reject HTTP, other origins or ports, URL credentials, fragments and redirects.
 - Admit only GET, POST, PATCH, PUT and DELETE. GET and DELETE cannot carry a body.
-- Measure strings, URLSearchParams, ArrayBuffer/views and Blob by their actual byte size. Reject unmeasurable bodies such as FormData and streams at runtime, even though the retained declaration accepts BodyInit.
+- Measure strings, URLSearchParams, ArrayBuffer/views and Blob by their actual byte size. Reject unmeasurable bodies such as FormData and streams in both the public type contract and runtime checks. Mutable URLSearchParams/buffer/view bodies are copied before asynchronous dispatch.
 - Byte limits range from 1 byte through 16 MiB. Timeout ranges from 1 through 60000 ms. Defaults are 64 KiB requests, 1 MiB responses and 15000 ms.
 
 Responses return `status`, `statusText`, `Headers` and a `Uint8Array` body. The application interprets HTTP error statuses.
@@ -63,7 +63,7 @@ Synthetic fetch/stream cases and a loopback-only adapter cover failure paths. Th
 
 ## Product responsibility
 
-This component is maintained in [crowsi-net/crowsi-transport-foundation](https://github.com/crowsi-net/crowsi-transport-foundation). Use the [product README](../../README.md) for composition, use cases and trust boundaries.
+This component is maintained in [crowsi-net/crowsi-transport-foundation](https://github.com/crowsi-net/crowsi-transport-foundation). Use the [product README](https://github.com/crowsi-net/crowsi-transport-foundation/blob/main/README.md) for composition, use cases and trust boundaries.
 
 ## Local administrator control (Node 24)
 
@@ -97,3 +97,7 @@ local command/keyring adapters are opt-in and never run on import.
 The generic broker supports JSON responses, one bounded HTTP request per grant,
 and no automatic pagination or polling. Each follow-up requires another plan
 and grant. Binary finance reports require a separately reviewed decoder.
+
+## Execute-only worker port (new source API)
+
+`./execute-port` exposes `createExecutePort(control)`. The owner registers an exact approved plan/permit and gives the isolated worker only `{ grantId, requestDigest }` plus the handle transport. Registration, approval, credential sources and revoke remain owner-only. Extra fields, substituted digests, unknown/revoked grants and replay are rejected. See [composition and playground](docs/execute-port.md). This new entrypoint is not contained in the published 0.11.2 archive; the isolated candidate consumer verifies the changed source before a new release.

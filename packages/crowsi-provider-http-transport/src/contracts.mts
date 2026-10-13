@@ -1,9 +1,12 @@
+/** Only representations whose byte size can be measured without consuming a stream. */
+export type ProviderRequestBody = string | URLSearchParams | ArrayBuffer | ArrayBufferView<ArrayBuffer> | Blob
+
 /** Caller-owned destination, method, headers and body. Runtime rejects unmeasurable bodies. */
 export interface ProviderHttpRequest {
   url: string | URL
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   headers?: HeadersInit
-  body?: BodyInit | null
+  body?: ProviderRequestBody | null
   signal?: AbortSignal
 }
 

@@ -1,5 +1,10 @@
 import { createProviderHttpTransport, ProviderTransportError } from '../src/index.mjs'
-import type { ProviderHttpRequest, ProviderHttpResponse, ProviderHttpTransportOptions } from '../src/index.mjs'
+import type {
+  ProviderHttpRequest,
+  ProviderRequestBody,
+  ProviderHttpResponse,
+  ProviderHttpTransportOptions,
+} from '../src/index.mjs'
 
 const options: ProviderHttpTransportOptions = { allowedOrigins: ['https://provider.example'], timeoutMs: 1000 }
 const request: ProviderHttpRequest = {
@@ -22,3 +27,10 @@ createProviderHttpTransport({})
 // @ts-expect-error response bodies are bytes, not strings.
 const wrongBody: ProviderHttpResponse = { status: 200, statusText: '', headers: new Headers(), body: 'text' }
 void wrongBody
+
+// @ts-expect-error FormData has no measurable supported body size.
+const unboundedForm: ProviderRequestBody = new FormData()
+void unboundedForm
+// @ts-expect-error Streams cannot be measured before dispatch.
+const unboundedStream: ProviderRequestBody = new ReadableStream()
+void unboundedStream
