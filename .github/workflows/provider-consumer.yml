@@ -1,4 +1,4 @@
-name: Provider archive consumer
+name: Native worker and provider archive consumer
 on:
   pull_request:
   push:
@@ -7,8 +7,8 @@ permissions:
   contents: read
 jobs:
   consumer:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -24,6 +24,17 @@ jobs:
           echo "NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/user.npmrc" >> "$GITHUB_ENV"
           echo "NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/global.npmrc" >> "$GITHUB_ENV"
           echo "NPM_CONFIG_CACHE=$RUNNER_TEMP/public-cache" >> "$GITHUB_ENV"
+      - name: Prepare the independently owned sandbox
+        run: |
+          git init "$RUNNER_TEMP/sandbox"
+          git -C "$RUNNER_TEMP/sandbox" fetch --depth=1 https://github.com/crowsi-net/crowsi-network-sandbox 78c98727d54ff4a40e61225b456fd581d5da4b16
+          git -C "$RUNNER_TEMP/sandbox" checkout --detach FETCH_HEAD
+          test "$(git -C "$RUNNER_TEMP/sandbox" rev-parse HEAD)" = 78c98727d54ff4a40e61225b456fd581d5da4b16
+          cd "$RUNNER_TEMP/sandbox"
+          bash scripts/ci/build-bubblewrap.sh
+          rustup toolchain install 1.97 --profile minimal
+          cargo +1.97 build --locked --example execute-port-worker
+          echo "CROWSI_WORKLOAD_HELPER=$RUNNER_TEMP/sandbox/target/debug/examples/execute-port-worker" >> "$GITHUB_ENV"
       - name: Build the source owned package
         working-directory: packages/crowsi-provider-http-transport
         run: |

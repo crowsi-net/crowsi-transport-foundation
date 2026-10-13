@@ -28,8 +28,8 @@ const result = await transport.request({ url: 'https://provider.example/items' }
 
 - Origins must be canonical HTTPS origins without a path, trailing slash or userinfo. Reject HTTP, other origins or ports, URL credentials, fragments and redirects.
 - Admit only GET, POST, PATCH, PUT and DELETE. GET and DELETE cannot carry a body.
-- Measure strings, URLSearchParams, ArrayBuffer/views and Blob by their actual byte size. Reject unmeasurable bodies such as FormData and streams at runtime, even though the retained declaration accepts BodyInit.
-- Byte limits range from 1 byte through 16 MiB. Timeout ranges from 1 through 60000 ms. Defaults are 64 KiB requests, 1 MiB responses and 15000 ms.
+- Measure strings, URLSearchParams, ArrayBuffer/views and Blob by their actual byte size. Reject unmeasurable bodies such as FormData and streams in both the public type contract and runtime checks. Mutable URLSearchParams/buffer/view bodies are copied before asynchronous dispatch.
+- Response streams accept at most 4096 byte chunks, including empty chunks; non-byte or excessively fragmented streams are rejected. Chunks are copied before the producer can reuse their buffer. Byte limits range from 1 byte through 16 MiB. Timeout ranges from 1 through 60000 ms. Defaults are 64 KiB requests, 1 MiB responses and 15000 ms.
 
 Responses return `status`, `statusText`, `Headers` and a `Uint8Array` body. The application interprets HTTP error statuses.
 Stalled fetch/body waits settle on abort or timeout. Best-effort stream cancellation cleanup does not block completion.
@@ -63,7 +63,7 @@ Synthetic fetch/stream cases and a loopback-only adapter cover failure paths. Th
 
 ## Product responsibility
 
-This component is maintained in [crowsi-net/crowsi-transport-foundation](https://github.com/crowsi-net/crowsi-transport-foundation). Use the [product README](../../README.md) for composition, use cases and trust boundaries.
+This component is maintained in [crowsi-net/crowsi-transport-foundation](https://github.com/crowsi-net/crowsi-transport-foundation). Use the [product README](https://github.com/crowsi-net/crowsi-transport-foundation/blob/main/README.md) for composition, use cases and trust boundaries.
 
 ## Local administrator control (Node 24)
 
@@ -74,7 +74,16 @@ failures also consume it. Unknown operations, changed requests, replay, expiry,
 redirects and unbounded responses fail closed. Provider errors are not echoed.
 A successful request does not prove a complete permission inventory.
 
-`prepare`, `approve`, `revoke` and `execute` belong to the owner composition.
+A grant remains revocable while credential acquisition or HTTP execution is in flight.
+Revocation signals cancellation and suppresses a successful receipt; it cannot undo
+a remote write already dispatched. `ProviderExecutionError.outcome` distinguishes
+`not-started`, `not-completed` and `indeterminate-write`. Read back the actual
+provider state before considering a retry of an indeterminate write.
+HTTP 204/205 produces `data: null`; unexpected nonempty bodies are rejected.
+Operation metadata and origin policy are copied at registration. `discard`
+removes an unused plan; abandoned plans expire after five minutes.
+
+`prepare`, `discard`, `approve`, `revoke` and `execute` belong to the owner composition.
 Give generated code only a restricted execute port and a reviewed grant, never
 approve, credential sources, or the mutable host environment. This library is
 not a process sandbox or a credential daemon. Use the Crowsi workload/custody
@@ -88,3 +97,9 @@ local command/keyring adapters are opt-in and never run on import.
 The generic broker supports JSON responses, one bounded HTTP request per grant,
 and no automatic pagination or polling. Each follow-up requires another plan
 and grant. Binary finance reports require a separately reviewed decoder.
+
+## Execute-only worker port (new source API)
+
+`./execute-port` exposes `createExecutePort(control)`. The owner registers an exact approved plan/permit and gives the isolated worker only `{ grantId, requestDigest }` plus the handle transport. Registration, approval, credential sources and revoke remain owner-only. Extra fields, substituted digests, unknown/revoked grants and replay are rejected. See [composition and playground](docs/execute-port.md). This new entrypoint is not contained in the published 0.11.2 archive; the isolated candidate consumer verifies the changed source before a new release.
+
+`control.describe()` returns the copied account/origin/operation catalog without acquiring credentials or making HTTP requests. Its permission state is `not-observed`: declared requirements are not effective IAM rights. Give this catalog to the trusted administrator UI, while generated workers receive only the registered execute request.

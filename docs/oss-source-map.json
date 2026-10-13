@@ -1,0 +1,817 @@
+{
+  "repository": "crowsi-net/crowsi-transport-foundation",
+  "purpose": "Bounded transport/framing plus owner-local single-use HTTP request control.",
+  "responsibility_boundary": "Vendor APIs, effective IAM observation, native custody, filesystem isolation, product storage and retries are separate responsibilities.",
+  "packages": [
+    {
+      "manifest": "Cargo.toml",
+      "package": "crowsi-transport-foundation",
+      "ecosystem": "rust",
+      "description": "Bounded local framing, delivery identities and transport lifecycle",
+      "interfaces": {
+        "lib": "src/lib.rs",
+        "features": {
+          "default": [],
+          "async-io": [
+            "dep:tokio"
+          ],
+          "process": [
+            "dep:rustix"
+          ],
+          "http-contract": [
+            "dep:bytes",
+            "dep:http",
+            "dep:serde",
+            "dep:serde_json",
+            "dep:tracing",
+            "dep:zeroize",
+            "dep:zstd"
+          ],
+          "loopback-http": [
+            "async-io",
+            "dep:httparse"
+          ]
+        },
+        "bins": [],
+        "public_modules": [
+          "io",
+          "http",
+          "loopback_http",
+          "process"
+        ],
+        "public_reexports": [],
+        "implicit_bins": []
+      },
+      "declared_commands": {}
+    },
+    {
+      "manifest": "crates/crowsi-authority-transport/Cargo.toml",
+      "package": "crowsi-authority-transport",
+      "ecosystem": "rust",
+      "description": "Opaque signed envelopes over bounded mutually authenticated TLS",
+      "interfaces": {
+        "lib": "crates/crowsi-authority-transport/src/lib.rs",
+        "features": {},
+        "bins": [],
+        "public_modules": [],
+        "public_reexports": [
+          "client::{AuthorityClient, ClientCredential}",
+          "contract::{PeerBinding, RequestEnvelopeV1, ResponseEnvelopeV1, SignedRequest}",
+          "error::TransportError",
+          "server::{\n    AuthorityBackend, AuthorityServer, Clock, PeerStatusGuard, PeerStatusIdentity, ReplayGuard,\n    ServerCredential, SystemClock,\n}",
+          "service_locator::{\n    SERVICE_LOCATOR_SCHEMA, ServiceLocatorV1, VerifiedServiceLocator,\n    service_locator_signing_bytes, verify_service_locator_at,\n}"
+        ],
+        "implicit_bins": []
+      },
+      "declared_commands": {}
+    },
+    {
+      "manifest": "crates/crowsi-network-observer/Cargo.toml",
+      "package": "crowsi-network-observer",
+      "ecosystem": "rust",
+      "description": "Safe, unprivileged network observation contracts for Crowsi",
+      "interfaces": {
+        "lib": "crates/crowsi-network-observer/src/lib.rs",
+        "features": {},
+        "bins": [],
+        "public_modules": [
+          "probes"
+        ],
+        "public_reexports": [
+          "model::{\n    NetworkObservationInputV1, NetworkObservationV1, OBSERVATIONS_SCHEMA_V1, ObservationBatchV1,\n    ObservationStatusV1,\n}",
+          "probe::{NetworkProbe, ProbeFailure, collect}",
+          "time::{now_rfc3339, unix_millis_to_rfc3339}"
+        ],
+        "implicit_bins": []
+      },
+      "declared_commands": {}
+    },
+    {
+      "manifest": "package.json",
+      "package": "@crowsi/transport-foundation",
+      "ecosystem": "npm",
+      "description": null,
+      "interfaces": {
+        "exports": {
+          ".": "./node/transport.mjs",
+          "./process": "./node/process.mjs",
+          "./realtime": "./node/realtime.mjs",
+          "./state-socket": "./node/state-socket.mjs"
+        },
+        "bin": {},
+        "main": null,
+        "types": null
+      },
+      "declared_commands": {
+        "test": "node --test test/*.test.mjs"
+      }
+    },
+    {
+      "manifest": "packages/crowsi-interaction-transport/package.json",
+      "package": "@crowsi/interaction-transport",
+      "ecosystem": "npm",
+      "description": null,
+      "interfaces": {
+        "exports": {
+          "./stdio": {
+            "types": "./dist/stdio.d.mts",
+            "import": "./dist/stdio.mjs"
+          },
+          "./client": {
+            "types": "./dist/client.d.mts",
+            "import": "./dist/client.mjs"
+          },
+          "./http": {
+            "types": "./dist/http.d.mts",
+            "import": "./dist/http.mjs"
+          }
+        },
+        "bin": {},
+        "main": null,
+        "types": null
+      },
+      "declared_commands": {
+        "typecheck": "npm run build && tsc -p tsconfig.test.json",
+        "build": "node scripts/clean-dist.mts && tsc -p tsconfig.json",
+        "test": "npm run build && node --test test/*.test.mts",
+        "prepack": "npm run typecheck && npm test"
+      }
+    },
+    {
+      "manifest": "packages/crowsi-provider-http-transport/package.json",
+      "package": "@crowsi/provider-http-transport",
+      "ecosystem": "npm",
+      "description": "Bounded browser HTTP egress transport with explicit destination ownership",
+      "interfaces": {
+        "exports": {
+          ".": {
+            "types": "./dist/index.d.mts",
+            "import": "./dist/index.mjs"
+          },
+          "./local-control": {
+            "types": "./dist/local-control.d.mts",
+            "import": "./dist/local-control.mjs"
+          },
+          "./execute-port": {
+            "types": "./dist/execute-port.d.mts",
+            "import": "./dist/execute-port.mjs"
+          }
+        },
+        "bin": {},
+        "main": null,
+        "types": null
+      },
+      "declared_commands": {
+        "format": "biome format --write src test scripts",
+        "format:check": "biome format src test scripts",
+        "lint": "biome lint --error-on-warnings src test scripts",
+        "typecheck": "tsc -p tsconfig.json",
+        "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json",
+        "test": "npm run build && node --test test/*.test.mjs",
+        "check:lines": "node scripts/check-lines.mjs",
+        "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:lines",
+        "prepack": "npm run check && npm test"
+      }
+    }
+  ],
+  "schema_definitions": [
+    "crates/crowsi-network-observer/schemas/network-observations-v1.schema.json"
+  ],
+  "test_sources": [
+    ".github/scripts/artifact-record.test.mts",
+    "crates/crowsi-authority-transport/src/service_locator_validation.rs",
+    "crates/crowsi-authority-transport/src/validation.rs",
+    "crates/crowsi-authority-transport/tests/connection_capacity.rs",
+    "crates/crowsi-authority-transport/tests/connection_deadline.rs",
+    "crates/crowsi-authority-transport/tests/connection_isolation.rs",
+    "crates/crowsi-authority-transport/tests/connection_peer_fairness.rs",
+    "crates/crowsi-authority-transport/tests/mtls_leaf_pin.rs",
+    "crates/crowsi-authority-transport/tests/mtls_loopback.rs",
+    "crates/crowsi-authority-transport/tests/mtls_two_endpoints.rs",
+    "crates/crowsi-authority-transport/tests/neutral_surface.rs",
+    "crates/crowsi-authority-transport/tests/peer_key_separation.rs",
+    "crates/crowsi-authority-transport/tests/peer_status_dynamic.rs",
+    "crates/crowsi-authority-transport/tests/peer_status_failure.rs",
+    "crates/crowsi-authority-transport/tests/peer_status_order.rs",
+    "crates/crowsi-authority-transport/tests/service_locator.rs",
+    "crates/crowsi-authority-transport/tests/support/isolation.rs",
+    "crates/crowsi-authority-transport/tests/support/isolation/client.rs",
+    "crates/crowsi-authority-transport/tests/support/mod.rs",
+    "crates/crowsi-authority-transport/tests/support/pki.rs",
+    "crates/crowsi-authority-transport/tests/support/status.rs",
+    "crates/crowsi-network-observer/src/main.rs",
+    "crates/crowsi-network-observer/src/probes/proc_net_dev.rs",
+    "crates/crowsi-network-observer/src/time.rs",
+    "crates/crowsi-network-observer/src/validation.rs",
+    "crates/crowsi-network-observer/tests/contracts.rs",
+    "crates/crowsi-network-observer/tests/validation.rs",
+    "node/process.mjs",
+    "node/realtime-bulk.mjs",
+    "node/state-socket.mjs",
+    "packages/crowsi-interaction-transport/test/client.test.mts",
+    "packages/crowsi-interaction-transport/test/fixtures/echo.mts",
+    "packages/crowsi-interaction-transport/test/fixtures/idle.mts",
+    "packages/crowsi-interaction-transport/test/fixtures/interrupt.mts",
+    "packages/crowsi-interaction-transport/test/fixtures/large-response.mts",
+    "packages/crowsi-interaction-transport/test/http.test.mts",
+    "packages/crowsi-interaction-transport/test/transport.test.mts",
+    "packages/crowsi-interaction-transport/tsconfig.test.json",
+    "packages/crowsi-provider-http-transport/scripts/check-lines.mjs",
+    "packages/crowsi-provider-http-transport/test/body-snapshot.test.mjs",
+    "packages/crowsi-provider-http-transport/test/catalog-description.test.mjs",
+    "packages/crowsi-provider-http-transport/test/deadline-1.test.mjs",
+    "packages/crowsi-provider-http-transport/test/deadline-2.test.mjs",
+    "packages/crowsi-provider-http-transport/test/execute-port.test.mjs",
+    "packages/crowsi-provider-http-transport/test/local-control-echo.test.mjs",
+    "packages/crowsi-provider-http-transport/test/local-control-lifecycle.test.mjs",
+    "packages/crowsi-provider-http-transport/test/local-control.test.mjs",
+    "packages/crowsi-provider-http-transport/test/local-fixture.test.mjs",
+    "packages/crowsi-provider-http-transport/test/policy-1.test.mjs",
+    "packages/crowsi-provider-http-transport/test/policy-2.test.mjs",
+    "packages/crowsi-provider-http-transport/test/policy-3.test.mjs",
+    "packages/crowsi-provider-http-transport/test/response-chunks.test.mjs",
+    "packages/crowsi-provider-http-transport/test/transport-1.test.mjs",
+    "packages/crowsi-provider-http-transport/test/transport-2.test.mjs",
+    "packages/crowsi-provider-http-transport/test/types.mts",
+    "playground/native-execute-port/verify.mjs",
+    "src/http.rs",
+    "src/lib.rs",
+    "src/loopback_http.rs",
+    "src/process.rs",
+    "src/process/tests.rs",
+    "test/foundation.test.mjs",
+    "test/process.test.mjs",
+    "test/realtime.test.mjs",
+    "test/state-socket.test.mjs",
+    "tests/foundation.rs",
+    "tests/process_stream.rs",
+    "tests/process_stream_cancellation.rs"
+  ],
+  "example_sources": [
+    "crates/crowsi-network-observer/examples/observation.sample.json",
+    "crates/crowsi-network-observer/examples/sample.rs",
+    "playground/execute-port/demo.mjs",
+    "playground/local-control/README.ja.md",
+    "playground/local-control/README.md",
+    "playground/local-control/demo.mjs",
+    "playground/native-execute-port/README.md",
+    "playground/native-execute-port/verify.mjs"
+  ],
+  "workflow_definitions": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "jobs": [
+        {
+          "job": "test",
+          "condition": null,
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": "Install declared Rust toolchain",
+              "run": "rustup toolchain install 1.97 --profile minimal --component rustfmt --component clippy",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Check every maintained package",
+              "run": "cargo +1.97 fmt --all -- --check\ncargo +1.97 clippy --locked --workspace --all-targets --all-features -- -D warnings\ncargo +1.97 test --locked --workspace --all-targets --all-features\ncargo +1.97 test --locked --workspace --doc --all-features\ncargo +1.97 build --locked --workspace --bins\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Audit exact dependency lock",
+              "run": "cargo install cargo-audit --version 0.22.2 --locked --no-default-features --root \"$RUNNER_TEMP/audit\"\n\"$RUNNER_TEMP/audit/bin/cargo-audit\" audit --deny warnings\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "condition": null
+            },
+            {
+              "name": "Verify Node transport packages",
+              "run": "npm test\nnpm ci --prefix packages/crowsi-interaction-transport --workspaces=false --ignore-scripts\nnpm --prefix packages/crowsi-interaction-transport run typecheck --workspaces=false\nnpm --prefix packages/crowsi-interaction-transport test --workspaces=false\nnpm --prefix packages/crowsi-interaction-transport pack --workspaces=false\ncd packages/crowsi-provider-http-transport\nnpm ci --workspaces=false --ignore-scripts\nnpm run check --workspaces=false\nnpm test --workspaces=false\nnpm pack --workspaces=false\n",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/interaction-transport.yml",
+      "jobs": [
+        {
+          "job": "consumer",
+          "condition": null,
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "condition": null
+            },
+            {
+              "name": "Isolate npm configuration and cache",
+              "run": ": > \"$RUNNER_TEMP/empty-user.npmrc\"\n: > \"$RUNNER_TEMP/empty-global.npmrc\"\necho \"NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/empty-user.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/empty-global.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_CACHE=$RUNNER_TEMP/package-cache\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_REGISTRY=https://registry.npmjs.org\" >> \"$GITHUB_ENV\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Validate maintained package",
+              "run": "npm ci --workspaces=false --ignore-scripts --no-audit --no-fund\nnpm run --workspaces=false typecheck\nnpm run --workspaces=false test\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Verify real archive in independent consumer",
+              "run": "node .github/scripts/packed-consumer.mjs",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/oss-policy.yml",
+      "jobs": [
+        {
+          "job": "repository-policy",
+          "condition": null,
+          "runs_on": "ubuntu-latest",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": "Verify repository policy",
+              "run": "python3 .github/oss-policy-check.py",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Verify policy regression tests",
+              "run": "cd .github && python3 -m unittest discover -s policy-tests",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Check policy types",
+              "run": "python3 -m venv \"$RUNNER_TEMP/policy-types\"\n\"$RUNNER_TEMP/policy-types/bin/pip\" install -r .github/policy/requirements.txt\n\"$RUNNER_TEMP/policy-types/bin/mypy\" --strict .github/policy .github/oss-policy-check.py .github/policy-tests\n",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/prepare-npm-artifact.yml",
+      "jobs": [
+        {
+          "job": "prepare",
+          "condition": "github.ref == 'refs/heads/main' && github.event.repository.private == false",
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": "Require the selected source",
+              "run": "[[ \"$EXPECTED_SHA\" =~ ^[a-f0-9]{40}$ && \"$EXPECTED_SHA\" == \"$GITHUB_SHA\" ]]\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "condition": null
+            },
+            {
+              "name": "Isolate configuration and public registry cache",
+              "run": ": > \"$RUNNER_TEMP/empty-user.npmrc\"\n: > \"$RUNNER_TEMP/empty-global.npmrc\"\necho \"NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/empty-user.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/empty-global.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_CACHE=$RUNNER_TEMP/release-cache\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_REGISTRY=https://registry.npmjs.org\" >> \"$GITHUB_ENV\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Install pinned package tools without lifecycle hooks",
+              "run": "npm install --global --ignore-scripts --no-audit --no-fund npm@11.12.1 pnpm@10.29.3",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Validate isolated package and dependencies",
+              "run": "npm ci --workspaces=false --ignore-scripts\nnpm run --workspaces=false typecheck\nnpm run --workspaces=false test\nnpm audit --workspaces=false --audit-level=low\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Check release-tool contracts",
+              "run": "node packages/crowsi-interaction-transport/node_modules/typescript/bin/tsc -p .github/tsconfig.release.json",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Test artifact metadata boundaries",
+              "run": "node --test .github/scripts/artifact-record.test.mts",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Generate the executable distribution without lifecycle hooks",
+              "run": "mkdir -p \"$GITHUB_WORKSPACE/outgoing\"\nnpm pack --workspaces=false --ignore-scripts --json --pack-destination \"$GITHUB_WORKSPACE/outgoing\" > \"$RUNNER_TEMP/pack.json\"\nnode \"$GITHUB_WORKSPACE/.github/scripts/artifact-receipt.mts\" \"$RUNNER_TEMP/pack.json\" \"$GITHUB_WORKSPACE/outgoing\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/prepare-provider-http-artifact.yml",
+      "jobs": [
+        {
+          "job": "prepare",
+          "condition": "github.ref == 'refs/heads/main' && github.event.repository.private == false",
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": "Require the selected source",
+              "run": "[[ \"$EXPECTED_SHA\" =~ ^[a-f0-9]{40}$ && \"$EXPECTED_SHA\" == \"$GITHUB_SHA\" ]]\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "condition": null
+            },
+            {
+              "name": "Isolate configuration and public registry cache",
+              "run": ": > \"$RUNNER_TEMP/empty-user.npmrc\"\n: > \"$RUNNER_TEMP/empty-global.npmrc\"\necho \"NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/empty-user.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/empty-global.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_CACHE=$RUNNER_TEMP/release-cache\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_REGISTRY=https://registry.npmjs.org\" >> \"$GITHUB_ENV\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Install pinned package tools without lifecycle hooks",
+              "run": "npm install --global --ignore-scripts --no-audit --no-fund npm@12.2.0 pnpm@10.29.3",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Validate isolated package and dependencies",
+              "run": "npm ci --workspaces=false --ignore-scripts\nnpm run --workspaces=false typecheck\nnpm run --workspaces=false test\nnpm audit --workspaces=false --audit-level=low\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Check release-tool contracts",
+              "run": "node packages/crowsi-provider-http-transport/node_modules/typescript/bin/tsc -p .github/tsconfig.provider-release.json",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Test artifact metadata boundaries",
+              "run": "node --test .github/scripts/artifact-record.test.mts",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Generate the executable distribution without lifecycle hooks",
+              "run": "mkdir -p \"$GITHUB_WORKSPACE/outgoing\"\nnpm pack --workspaces=false --ignore-scripts --json --pack-destination \"$GITHUB_WORKSPACE/outgoing\" > \"$RUNNER_TEMP/pack.json\"\nnode \"$GITHUB_WORKSPACE/.github/scripts/artifact-receipt.mts\" \"$RUNNER_TEMP/pack.json\" \"$GITHUB_WORKSPACE/outgoing\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/provider-consumer.yml",
+      "jobs": [
+        {
+          "job": "consumer",
+          "condition": null,
+          "runs_on": "ubuntu-22.04",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "condition": null
+            },
+            {
+              "name": "Use public registry configuration",
+              "run": ": > \"$RUNNER_TEMP/user.npmrc\"\n: > \"$RUNNER_TEMP/global.npmrc\"\necho \"NPM_CONFIG_USERCONFIG=$RUNNER_TEMP/user.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_GLOBALCONFIG=$RUNNER_TEMP/global.npmrc\" >> \"$GITHUB_ENV\"\necho \"NPM_CONFIG_CACHE=$RUNNER_TEMP/public-cache\" >> \"$GITHUB_ENV\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Prepare the independently owned sandbox",
+              "run": "git init \"$RUNNER_TEMP/sandbox\"\ngit -C \"$RUNNER_TEMP/sandbox\" fetch --depth=1 https://github.com/crowsi-net/crowsi-network-sandbox 78c98727d54ff4a40e61225b456fd581d5da4b16\ngit -C \"$RUNNER_TEMP/sandbox\" checkout --detach FETCH_HEAD\ntest \"$(git -C \"$RUNNER_TEMP/sandbox\" rev-parse HEAD)\" = 78c98727d54ff4a40e61225b456fd581d5da4b16\ncd \"$RUNNER_TEMP/sandbox\"\nbash scripts/ci/build-bubblewrap.sh\nrustup toolchain install 1.97 --profile minimal\ncargo +1.97 build --locked --example execute-port-worker\necho \"CROWSI_WORKLOAD_HELPER=$RUNNER_TEMP/sandbox/target/debug/examples/execute-port-worker\" >> \"$GITHUB_ENV\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Build the source owned package",
+              "run": "npm ci --ignore-scripts --workspaces=false\nnpm run check --workspaces=false\nnpm test --workspaces=false\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Verify independent public archive imports",
+              "run": "node .github/scripts/provider-consumer.mjs",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/publish-cargo.yml",
+      "jobs": [
+        {
+          "job": "verify",
+          "condition": "vars.REGISTRY_VALIDATION_ENABLED == 'true' && github.event.repository.private == false",
+          "runs_on": "ubuntu-latest",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "condition": null
+            },
+            {
+              "name": "Require the reviewed source",
+              "run": "test \"$APPROVED_SHA\" = \"$GITHUB_SHA\"\nif [ \"$REGISTRY_OPERATION\" = publish ]; then\n  git merge-base --is-ancestor HEAD origin/main\nelse\n  git merge-base --is-ancestor origin/main HEAD\nfi\nrustup toolchain install 1.97 --profile minimal --component rustfmt --component clippy\nrustup override set 1.97\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Validate public package metadata",
+              "run": "cargo metadata --locked --no-deps --format-version 1 > /tmp/package-metadata.json\nnode --input-type=module <<'JS'\nimport fs from 'node:fs';\nconst d = JSON.parse(fs.readFileSync('/tmp/package-metadata.json'));\nconst p = d.packages.find(p => p.manifest_path === `${process.env.GITHUB_WORKSPACE}/Cargo.toml`);\nif (!p || JSON.stringify(p.publish) !== '[\"crates-io\"]'\n  || p.repository !== `https://github.com/${process.env.GITHUB_REPOSITORY}`) {\n  throw new Error('Public package metadata is not the reviewed crate');\n}\nfs.appendFileSync(process.env.GITHUB_ENV, `PACKAGE_ARCHIVE=target/package/${p.name}-${p.version}.crate\\n`);\nfs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${p.version}\\n`);\nJS\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Verify independent package build",
+              "run": "cargo fmt --all -- --check\ncargo test --locked --all-features\ncargo clippy --locked --all-targets --all-features -- -D warnings\ncargo package --locked --registry crates-io\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Record the review artifact digest",
+              "run": "sha256sum \"$PACKAGE_ARCHIVE\"\necho \"sha256=$(sha256sum \"$PACKAGE_ARCHIVE\" | cut -d ' ' -f 1)\" >> \"$GITHUB_OUTPUT\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "condition": null
+            }
+          ]
+        },
+        {
+          "job": "publish",
+          "condition": "inputs.operation == 'publish' && vars.REGISTRY_PUBLISH_ENABLED == 'true' && github.ref_type == 'tag'",
+          "runs_on": "ubuntu-latest",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "condition": null
+            },
+            {
+              "name": "Require the approved tag and CI artifact",
+              "run": "test \"$GITHUB_REF_NAME\" = \"v${VERSION}\"\ntest -n \"$APPROVED_SHA256\"\ntest \"$VERIFIED_SHA256\" = \"$APPROVED_SHA256\"\nrustup toolchain install 1.97 --profile minimal --component rustfmt --component clippy\nrustup override set 1.97\ncargo package --locked --registry crates-io\ntest \"$(sha256sum target/package/*.crate | cut -d ' ' -f 1)\" = \"$APPROVED_SHA256\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Obtain a short-lived scoped crates.io token",
+              "run": null,
+              "uses": "rust-lang/crates-io-auth-action@c6f97d42243bad5fab37ca0427f495c86d5b1a18",
+              "condition": null
+            },
+            {
+              "name": "Publish the approved crate",
+              "run": "cargo publish --locked --registry crates-io",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/publish-provider.yml",
+      "jobs": [
+        {
+          "job": "prepare",
+          "condition": "github.ref == 'refs/heads/main' && github.event.repository.private == false",
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": "Require exact reviewed source without publication identity",
+              "run": "[[ \"$EXPECTED_SHA\" =~ ^[a-f0-9]{40}$ && \"$EXPECTED_SHA\" == \"$GITHUB_SHA\" ]]\ntest -z \"$ACTIONS_ID_TOKEN_REQUEST_TOKEN\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": "npm install --global npm@12.2.0 --ignore-scripts",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Verify source and isolated candidate without OIDC",
+              "run": "npm ci --ignore-scripts --workspaces=false\nnpm run check --workspaces=false\nnpm test --workspaces=false\nnode ../../.github/scripts/provider-consumer.mjs\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Bind prepared archive",
+              "run": "node ../../.github/scripts/prepare-provider-artifact.mjs",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "condition": null
+            }
+          ]
+        },
+        {
+          "job": "publish",
+          "condition": null,
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": "Recheck reviewed source and OIDC context",
+              "run": "[[ \"$EXPECTED_SHA\" =~ ^[a-f0-9]{40}$ && \"$EXPECTED_SHA\" == \"$GITHUB_SHA\" ]]\ntest -n \"$ACTIONS_ID_TOKEN_REQUEST_URL\"\ntest -n \"$ACTIONS_ID_TOKEN_REQUEST_TOKEN\"\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": "npm install --global npm@12.2.0 --ignore-scripts",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
+              "condition": null
+            },
+            {
+              "name": "Publish only the exact prepared archive",
+              "run": "node ../../.github/scripts/publish-provider.mjs \"$RUNNER_TEMP/provider-release/$PREPARED_FILENAME\"",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/published-source-history.yml",
+      "jobs": [
+        {
+          "job": "restore",
+          "condition": null,
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": "Restore original public source without executing it",
+              "run": "python3 - <<'PY'\nimport hashlib,json,subprocess,tempfile\nfrom pathlib import Path\nroot=Path('source-history/crowsi-provider-http-transport')\nrecord=json.loads((root/'source-record.json').read_text())\nbundle=(root/'original.bundle').resolve()\nassert hashlib.sha256(bundle.read_bytes()).hexdigest()==record['bundle_sha256']\nwith tempfile.TemporaryDirectory() as directory:\n    def git(*args):\n        return subprocess.check_output(['git',*args],cwd=directory,stderr=subprocess.DEVNULL,text=True).strip()\n    git('init','--bare')\n    git('bundle','verify',str(bundle))\n    git('fetch',str(bundle),'+refs/*:refs/*')\n    for ref in record['refs']:\n        assert git('rev-parse',ref['ref'])==ref['sha']\n    assert git('cat-file','-t','089469a09f98c0964a1a4ea36526d75157966821')=='commit'\n    assert git('rev-parse','refs/tags/v0.10.1^{commit}')=='089469a09f98c0964a1a4ea36526d75157966821'\nprint('Original published source commit and observed refs restored')\nPY\n",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/verify-cargo.yml",
+      "jobs": [
+        {
+          "job": "verify",
+          "condition": null,
+          "runs_on": "ubuntu-latest",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+              "condition": null
+            },
+            {
+              "name": "Install the declared Rust toolchain",
+              "run": "rustup toolchain install 1.97 --profile minimal --component rustfmt --component clippy\nrustup override set 1.97\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Verify source and independent package",
+              "run": "cargo fmt --all -- --check\ncargo test --locked --all-features\ncargo clippy --locked --all-targets --all-features -- -D warnings\ncargo package --locked --registry crates-io\nsha256sum target/package/crowsi-transport-foundation-0.10.0.crate\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+              "condition": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "evidence_policy": "Declarations and source paths are not proof of an executed acceptance. Exact CI head and result are recorded separately. No live accounts or production acceptance is inferred."
+}

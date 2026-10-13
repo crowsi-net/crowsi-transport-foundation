@@ -6,10 +6,12 @@ import type {
 } from './contracts.mjs'
 export type {
   ProviderHttpRequest,
+  ProviderRequestBody,
   ProviderHttpResponse,
   ProviderHttpTransportOptions,
 } from './contracts.mjs'
-import { ProviderTransportError, checkedLimit, checkedOrigins, checkedUrl, bodySize } from './policy.mjs'
+import { ProviderTransportError, checkedLimit, checkedOrigins, checkedUrl } from './policy.mjs'
+import { boundedBody } from './body.mjs'
 import { abortable, cancelBody } from './abort.mjs'
 import { readBounded } from './response.mjs'
 export { ProviderTransportError } from './policy.mjs'
@@ -45,7 +47,7 @@ export function createProviderHttpTransport({
       if ((normalizedMethod === 'GET' || normalizedMethod === 'DELETE') && body != null) {
         throw new ProviderTransportError('transport/request/body/rejected')
       }
-      if (bodySize(body) > requestLimit) throw new ProviderTransportError('transport/request/limit')
+      const payload = boundedBody(body, requestLimit)
       if (signal?.aborted) throw new ProviderTransportError('transport/request/aborted')
       const controller = new AbortController()
       const abort = () => controller.abort(signal?.reason)
@@ -61,7 +63,7 @@ export function createProviderHttpTransport({
           fetchImplementation(url.href, {
             method: normalizedMethod,
             headers,
-            body,
+            body: payload,
             signal: controller.signal,
             redirect: 'manual',
           }),

@@ -12,3 +12,8 @@ createProviderHttpTransport({ allowedOrigins: ['https://synthetic.test'] })
 // @ts-expect-error Effects must use the closed read/write declaration.
 const invalid: LocalOperation = { id: 'invalid', effect: 'unbounded', requiredPermissions: [], build: operations[0].build }
 void invalid
+
+import { createExecutePort } from '@crowsi/provider-http-transport/execute-port'
+const port = createExecutePort(control)
+const permit = control.approve(control.prepare('read', {}), Date.now() + 1000)
+void port.handle({ grantId: permit.id, requestDigest: permit.digest })

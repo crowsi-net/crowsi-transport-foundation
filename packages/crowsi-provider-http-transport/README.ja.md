@@ -64,3 +64,9 @@ npm pack
 ## ローカル操作と独立consumer
 
 [playground](https://github.com/crowsi-net/crowsi-transport-foundation/tree/main/playground/local-control)はTGZをcheckout外へ導入し、公開型・変更/読戻し・replay拒否・credential反射拒否を確認します。owner CIと公開workflowが同じ例を実行します。実account、keyring、cloud操作は行いません。Nodeメモリ内grantと署名付き永続native認可、OS sandboxは別の保証です。
+
+## 操作の失効と結果不明の書込み
+
+認証情報の取得中・HTTP実行中もgrantを失効できます。失効は待機を中断し、成功receiptの発行を止めます。送信済みの変更を取り消す保証はありません。`ProviderExecutionError.outcome` が `indeterminate-write` の場合、実際のprovider状態を読み戻してから再実行の必要性を判断してください。自動retryはしません。
+
+HTTP 204/205は `data: null` で扱い、不正な非空bodyを拒否します。操作metadata・宛先policyは登録時にコピーします。不要なplanは `discard` で撤去でき、放置されたplanは5分で失効します。検証は合成credentialとfake HTTPのみで、実accountや請求データは操作しません。

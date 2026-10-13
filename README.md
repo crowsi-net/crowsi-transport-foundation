@@ -81,3 +81,5 @@ npm test --workspace @crowsi/interaction-transport
 WSL observation does not inspect the Windows host firewall or network namespace.
 Keep protocol-specific size, deadline and peer verification guarantees when
 composing transports. Each library retains its own Cargo/npm distribution unit.
+
+[OSS responsibility and source completion](docs/oss-source-contract.md) defines the supported package boundary and required acceptance. It does not declare unexecuted source, distribution or production checks complete.

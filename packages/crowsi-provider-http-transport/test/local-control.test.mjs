@@ -90,7 +90,7 @@ test('does not leak provider errors or an echoed bearer credential', async () =>
   await assert.rejects(f.control.execute(f.grant.id, f.plan), /credential-rejected/)
   const g = fixture()
   g.setResponse(() => new Response(token, { status: 403 }))
-  await assert.rejects(g.control.execute(g.grant.id, g.plan), /^Error: provider\/http\/403$/)
+  await assert.rejects(g.control.execute(g.grant.id, g.plan), /^ProviderExecutionError: provider\/http\/403$/)
 })
 test('refuses redirects and oversized provider responses', async () => {
   const f = fixture()
