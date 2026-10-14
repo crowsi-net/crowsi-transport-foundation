@@ -23,7 +23,7 @@ httparse = { version = "1.10.1", optional = true }
 serde = { version = "1.0.229", features = ["derive"], optional = true }
 serde_json = { version = "1.0.151", optional = true }
 tracing = { version = "0.1.44", optional = true }
-zstd = { version = "0.13", optional = true }
+zstd = { version = "0.14", optional = true }
 zeroize = { version = "1.8.2", optional = true }
 
 [features]
