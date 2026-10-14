@@ -42,7 +42,7 @@
     "url": "https://github.com/crowsi-net/crowsi-transport-foundation/issues"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
+    "typescript": "7.0.2",
     "@types/node": "24.12.0"
   },
   "publishConfig": {
