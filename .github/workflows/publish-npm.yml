@@ -3,8 +3,13 @@ on:
   push:
     tags: ['v*', 'npm/**']
   pull_request:
-    paths: ['.github/registry-release.json', '.github/scripts/release_plan.py', '.github/scripts/test_release_plan.py', '.github/scripts/archive_binding.py', '.github/scripts/test_archive_binding.py', '.github/workflows/publish-npm.yml']
+    paths: ['.github/registry-release.json', '.github/scripts/release_plan.py', '.github/scripts/test_release_plan.py', '.github/scripts/archive_binding.py', '.github/scripts/test_archive_binding.py', '.github/scripts/stage_notification.py', '.github/scripts/test_stage_notification.py', '.github/workflows/publish-npm.yml']
   workflow_dispatch:
+    inputs:
+      approval-batch:
+        description: Optional review group; empty means individual approval. Does not bypass npm approval.
+        type: string
+        required: false
 permissions:
   contents: read
 concurrency:
@@ -21,6 +26,7 @@ jobs:
       - run: |
           python3 .github/scripts/test_release_plan.py
           python3 .github/scripts/test_archive_binding.py
+          python3 .github/scripts/test_stage_notification.py
   prepare:
     if: github.event_name != 'pull_request' && github.ref_type == 'tag' && github.event.repository.private == false
     needs: contract
@@ -83,6 +89,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: npm-public
+    outputs:
+      stage-id: ${{ steps.publication.outputs.stage-id }}
+      notice-artifact-id: ${{ steps.notice.outputs.artifact-id }}
     permissions:
       contents: read
       id-token: write
@@ -107,21 +116,57 @@ jobs:
           EXPECTED_ARCHIVE_SHA256: ${{ needs.prepare.outputs.archive-sha256 }}
         run: python3 .github/scripts/archive_binding.py verify npm "$RUNNER_TEMP/npm-release"
       - name: Publish through the repository Trusted Publisher
+        id: publication
         env:
           NODE_AUTH_TOKEN: ''
           NPM_TOKEN: ''
           PUBLICATION_MODE: ${{ vars.NPM_PUBLICATION_MODE }}
           ARCHIVE_NAME: ${{ needs.prepare.outputs.archive-name }}
           EXPECTED_ARCHIVE_SHA256: ${{ needs.prepare.outputs.archive-sha256 }}
+          APPROVAL_BATCH: ${{ inputs.approval-batch || vars.NPM_APPROVAL_BATCH }}
         run: |
           set -euo pipefail
           if test "$PUBLICATION_MODE" = direct; then
             npm publish "$RUNNER_TEMP/npm-release/$ARCHIVE_NAME" --access public --provenance --ignore-scripts --registry=https://registry.npmjs.org
             python3 .github/scripts/archive_binding.py registry npm "$RUNNER_TEMP/npm-release"
           elif test -z "$PUBLICATION_MODE" || test "$PUBLICATION_MODE" = stage; then
-            npm stage publish "$RUNNER_TEMP/npm-release/$ARCHIVE_NAME" --access public --provenance --ignore-scripts --registry=https://registry.npmjs.org
-            echo 'Stage created; formal publication still requires maintainer approval on npm.' >> "$GITHUB_STEP_SUMMARY"
+            npm stage publish "$RUNNER_TEMP/npm-release/$ARCHIVE_NAME" --access public --provenance --ignore-scripts --json --registry=https://registry.npmjs.org > "$RUNNER_TEMP/npm-stage-response.json"
+            python3 .github/scripts/stage_notification.py "$RUNNER_TEMP/npm-release" "$RUNNER_TEMP/npm-stage-response.json"
+            rm -f "$RUNNER_TEMP/npm-stage-response.json"
           else
             echo 'Unknown NPM_PUBLICATION_MODE'; exit 1
           fi
           cat "$RUNNER_TEMP/npm-release/release-receipt.json" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        id: notice
+        if: steps.publication.outputs.stage-id != ''
+        with:
+          name: npm-stage-notice-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/npm-release/stage-notification/
+          if-no-files-found: error
+          retention-days: 30
+  notify:
+    needs: publish
+    if: needs.publish.outputs.stage-id != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.publish.outputs.notice-artifact-id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/npm-stage-notice
+      - name: Notify the owner issue queue without npm credentials or approval authority
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STAGE_ID: ${{ needs.publish.outputs.stage-id }}
+        run: |
+          set -euo pipefail
+          count=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --search "$STAGE_ID in:body" --json number --jq 'length')
+          if test "$count" = 0; then
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "[npm stage] Review $STAGE_ID" --body-file "$RUNNER_TEMP/npm-stage-notice/notice.md"
+          fi
+          cat "$RUNNER_TEMP/npm-stage-notice/notice.md" >> "$GITHUB_STEP_SUMMARY"
