@@ -9,7 +9,7 @@
 このsourceのrelease対象は`0.11.2`です。採用前に公式registryの取得とprovenanceを確認してください。実際の接続先と認証方針は、利用アプリの所有者が確認して設定してください。
 
 ```sh
-npm install --save-exact @crowsi/provider-http-transport@0.11.2
+npm install @crowsi/provider-http-transport
 ```
 
 ```js
