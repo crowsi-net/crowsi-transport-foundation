@@ -48,7 +48,7 @@ test('guarded child dies with its parent after readiness; no orphan may perform 
     const until=Date.now()+2000
     let running=true
     while(Date.now()<until){
-      try{const stat=fs.readFileSync(`/proc/${childPid}/stat`,'utf8');running=!/\) Z /u.test(stat)}catch(error){if(error.code==='ENOENT')running=false;else throw error}
+      try{const stat=fs.readFileSync(`/proc/${childPid}/stat`,'utf8');running=!/\) Z /u.test(stat)}catch(error){if(error.code==='ENOENT'||error.code==='ESRCH')running=false;else throw error}
       if(!running)break
       await new Promise(resolve=>setTimeout(resolve,10))
     }
