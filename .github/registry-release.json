@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "repository": "crowsi-net/crowsi-transport-foundation",
+  "defaultBranch": "main",
+  "requiredWorkflows": [
+    "ci.yml",
+    "interaction-transport.yml",
+    "oss-policy.yml",
+    "provider-consumer.yml",
+    "published-source-history.yml",
+    "verify-cargo.yml"
+  ],
+  "packages": [
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "name": "@crowsi/transport-foundation",
+      "installDirectory": "."
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/crowsi-interaction-transport/package.json",
+      "name": "@crowsi/interaction-transport",
+      "installDirectory": "packages/crowsi-interaction-transport"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/crowsi-provider-http-transport/package.json",
+      "name": "@crowsi/provider-http-transport",
+      "installDirectory": "packages/crowsi-provider-http-transport"
+    },
+    {
+      "ecosystem": "cargo",
+      "manifest": "Cargo.toml",
+      "name": "crowsi-transport-foundation",
+      "installDirectory": "."
+    },
+    {
+      "ecosystem": "cargo",
+      "manifest": "crates/crowsi-authority-transport/Cargo.toml",
+      "name": "crowsi-authority-transport",
+      "installDirectory": "."
+    }
+  ]
+}

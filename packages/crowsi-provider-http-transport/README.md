@@ -9,7 +9,7 @@ Use bounded HTTP requests with an explicit HTTPS-origin policy, request/response
 Release version: `0.11.2`. Verify registry availability and provenance before adoption. Configure the transport with the application's reviewed destination and authentication policy.
 
 ```sh
-npm install --save-exact @crowsi/provider-http-transport@0.11.2
+npm install @crowsi/provider-http-transport
 ```
 
 ```js
