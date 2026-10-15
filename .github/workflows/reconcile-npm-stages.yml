@@ -1,0 +1,53 @@
+name: Reconcile published npm stage notices
+on:
+  schedule:
+    - cron: '41 18 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/scripts/reconcile_stage.mts'
+      - '.github/scripts/test_reconcile_stage.mts'
+      - '.github/workflows/reconcile-npm-stages.yml'
+permissions:
+  contents: read
+concurrency:
+  group: npm-stage-notices-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  verify-source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - run: node --test .github/scripts/test_reconcile_stage.mts
+  reconcile:
+    needs: verify-source
+    if: github.event_name != 'pull_request' && github.ref_name == github.event.repository.default_branch && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.15.0'
+          package-manager-cache: false
+      - run: npm install --global --ignore-scripts npm@12.2.0
+      - name: Verify public package bytes and Sigstore provenance before closing exact notices
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NODE_AUTH_TOKEN: ''
+          NPM_TOKEN: ''
+        run: node .github/scripts/reconcile_stage.mts

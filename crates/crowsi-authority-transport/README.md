@@ -30,3 +30,11 @@ cargo test --locked -p crowsi-authority-transport
 ## Product responsibility
 
 This component is maintained in [crowsi-net/crowsi-transport-foundation](https://github.com/crowsi-net/crowsi-transport-foundation). Use the [product README](../../README.md) for composition, use cases and trust boundaries.
+
+## TLS dependency security
+
+The 0.1.1 source candidate requires rustls 0.23.46 for RUSTSEC-2026-0346,
+0347, 0348 and 0349. The opaque envelope, pinned identity, TLS peer checks and
+capability boundaries are unchanged. This source update does not mean the new
+crate is published. Registry rollout and consumer provenance are tracked in
+coela-oss/coela-release#123; never re-publish the immutable 0.1.0 archive.

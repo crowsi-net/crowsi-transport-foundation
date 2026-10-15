@@ -9,3 +9,17 @@ The prepare job has no publication credential. It builds, inspects and binds an 
 For npm, `NPM_PUBLICATION_MODE=stage` (default) uses `npm stage publish` and still requires npm maintainer approval. For automatic formal publication, register the Trusted Publisher with allowed action `npm publish` and set `NPM_PUBLICATION_MODE=direct`. Token publication remains prohibited. Direct publication verifies official npm integrity; crates.io publication verifies its official SHA256. Initial package/trust registration and environment protections are configuration steps, not inferred from source CI.
 
 Source PR CI verifies release-selection and archive-refusal tests without publishing. Tag preparation is independently gated by existing functional CI. No release tag, registry setting, production deployment or publication is created by adding this source configuration.
+
+## Public npm stage notice reconciliation
+
+The independent daily/manual `reconcile-npm-stages.yml` workflow closes only this
+repository's Actions-bot stage notice after exact official tarball SHA256/SHA512,
+source/run/package binding and cryptographically verified GitHub CI provenance
+match. It verifies the Fulcio identity and transparency evidence through the
+reviewed npm 12.2.0 Sigstore verifier. It has no npm token, OIDC identity or stage
+approval authority. Missing, pending, mismatched and unverified publications stay
+open. Bounded reads and partial coverage are reported in the Actions Summary.
+
+The workflow runs from the default branch. PRs run only synthetic boundary tests
+without issue write permission; they cannot close a stage notice. Run
+`node --test .github/scripts/test_reconcile_stage.mts` locally to check the boundary.
