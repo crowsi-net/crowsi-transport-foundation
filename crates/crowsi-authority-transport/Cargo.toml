@@ -16,12 +16,12 @@ repository = "https://github.com/crowsi-net/crowsi-transport-foundation"
 [dependencies]
 ed25519-dalek = { version = "=3.0.0", features = ["zeroize"] }
 hex = "=0.4.3"
-rustls = { version = "=0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
 rustls-pki-types = "=1.15.1"
 serde = { version = "=1.0.229", features = ["derive"] }
-serde_json = "=1.0.152"
+serde_json = "1.0.151"
 sha2 = "=0.10.9"
-zeroize = "=1.9.1"
+zeroize = "1.8.2"
 
 [lints.rust]
 unsafe_code = "forbid"
