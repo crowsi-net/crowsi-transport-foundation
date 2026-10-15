@@ -38,3 +38,10 @@ The 0.1.1 source candidate requires rustls 0.23.46 for RUSTSEC-2026-0346,
 capability boundaries are unchanged. This source update does not mean the new
 crate is published. Registry rollout and consumer provenance are tracked in
 coela-oss/coela-release#123; never re-publish the immutable 0.1.0 archive.
+
+Compatible serde_json/zeroize patch/minor releases are allowed by the library
+requirements; the owner lock retains the verified current resolution. Consumers
+with existing exact compatible contracts can resolve one shared implementation
+without duplicate types or forced downgrade. Rustls has a fixed minimum of
+0.23.46 and may take later compatible security patches. Frozen locks and the
+unchanged vulnerability gate verify actual selected bytes.
