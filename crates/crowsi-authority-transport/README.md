@@ -33,7 +33,7 @@ This component is maintained in [crowsi-net/crowsi-transport-foundation](https:/
 
 ## TLS dependency security
 
-The 0.1.1 source candidate requires rustls 0.23.46 for RUSTSEC-2026-0346,
+The 0.2.0 source candidate requires rustls 0.23.46 for RUSTSEC-2026-0346,
 0347, 0348 and 0349. The opaque envelope, pinned identity, TLS peer checks and
 capability boundaries are unchanged. This source update does not mean the new
 crate is published. Registry rollout and consumer provenance are tracked in
@@ -45,3 +45,9 @@ with existing exact compatible contracts can resolve one shared implementation
 without duplicate types or forced downgrade. Rustls has a fixed minimum of
 0.23.46 and may take later compatible security patches. Frozen locks and the
 unchanged vulnerability gate verify actual selected bytes.
+
+The published 0.1.0 exposed Ed25519 Dalek 2 signing keys; the current source
+exposes Dalek 3 keys. This public Rust type boundary requires a 0.2.0 release,
+not an overwritten or misleading 0.1.x security patch. Managed consumers adopt
+the current key type directly. The signed wire format and peer authorization
+remain unchanged; no legacy decoder or key-conversion fallback is added.
