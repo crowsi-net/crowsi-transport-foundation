@@ -1,0 +1,24 @@
+[package]
+name = "crowsi-provider-read-http"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+license = "Apache-2.0"
+repository = "https://github.com/crowsi-net/crowsi-transport-foundation"
+description = "Explicit-origin bounded HTTPS reads with externally supplied bearer credentials"
+publish = false
+
+[dependencies]
+crowsi-transport-foundation = { path = "../..", features = ["http-contract"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+zeroize = "1.8.2"
+
+[dev-dependencies]
+tempfile = "3"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-pki-types = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+[lints.clippy]
+all = "warn"
