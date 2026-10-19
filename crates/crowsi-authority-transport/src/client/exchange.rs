@@ -50,7 +50,9 @@ impl AuthorityClient {
             .peer_certificates()
             .and_then(|items| items.first())
             .ok_or(TransportError::Peer)?;
-        if format!("sha256:{:x}", Sha256::digest(leaf.as_ref())) != self.server_certificate_sha256 {
+        if format!("sha256:{}", hex::encode(Sha256::digest(leaf.as_ref())))
+            != self.server_certificate_sha256
+        {
             return Err(TransportError::Peer);
         }
         let mut stream = StreamOwned::new(connection, tcp);

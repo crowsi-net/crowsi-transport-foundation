@@ -45,5 +45,5 @@ pub(crate) fn verify(public: &str, signature: &str, bytes: &[u8]) -> bool {
 }
 
 pub(crate) fn digest(bytes: &[u8]) -> String {
-    format!("sha256:{:x}", Sha256::digest(bytes))
+    format!("sha256:{}", hex::encode(Sha256::digest(bytes)))
 }

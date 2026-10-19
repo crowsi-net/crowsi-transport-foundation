@@ -18,7 +18,10 @@ impl<B: AuthorityBackend, R: ReplayGuard> AuthorityServer<B, R> {
             .peer_certificates()
             .and_then(|items| items.first())
             .ok_or(TransportError::Peer)?;
-        let digest = format!("sha256:{:x}", Sha256::digest(certificate.as_ref()));
+        let digest = format!(
+            "sha256:{}",
+            hex::encode(Sha256::digest(certificate.as_ref()))
+        );
         let peer = self
             .peers
             .iter()
