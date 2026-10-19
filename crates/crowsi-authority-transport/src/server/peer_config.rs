@@ -19,6 +19,7 @@ pub(super) fn valid(peers: &[(PeerBinding, Vec<u8>)]) -> bool {
                 && certificates.insert(&peer.certificate_sha256)
                 && key_ids.insert(&peer.request_key_id)
                 && public_keys.insert(&peer.request_public_key_hex)
-                && format!("sha256:{:x}", Sha256::digest(certificate)) == peer.certificate_sha256
+                && format!("sha256:{}", hex::encode(Sha256::digest(certificate)))
+                    == peer.certificate_sha256
         })
 }

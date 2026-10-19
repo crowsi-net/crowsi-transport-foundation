@@ -128,7 +128,7 @@ pub fn peer(
 }
 
 pub fn server_certificate_sha256(certificate: &Certificate) -> String {
-    format!("sha256:{:x}", Sha256::digest(&certificate.cert))
+    format!("sha256:{}", hex::encode(Sha256::digest(&certificate.cert)))
 }
 
 pub fn root() -> PathBuf {
