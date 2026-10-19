@@ -45,5 +45,12 @@
   },
   "workspaces": [
     "packages/*"
+  ],
+  "keywords": [
+    "ipc",
+    "networking",
+    "bounded-io",
+    "rust",
+    "asynchronous"
   ]
 }

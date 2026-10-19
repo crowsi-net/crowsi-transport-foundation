@@ -1,4 +1,6 @@
 [package]
+categories = ["network-programming", "asynchronous"]
+keywords = ["ipc", "networking", "bounded-io", "rust", "asynchronous"]
 readme = "README.crate.md"
 name = "crowsi-transport-foundation"
 version = "0.10.0"

@@ -48,5 +48,11 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
     "access": "public"
-  }
+  },
+  "keywords": [
+    "ipc",
+    "typed-contracts",
+    "user-interaction",
+    "typescript"
+  ]
 }
