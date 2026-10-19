@@ -60,5 +60,11 @@
     "typescript": "5.9.3",
     "@biomejs/biome": "2.5.15",
     "@types/node": "24.19.2"
-  }
+  },
+  "keywords": [
+    "http",
+    "bounded-io",
+    "provider-integration",
+    "typescript"
+  ]
 }
