@@ -9,7 +9,10 @@
       "DOM.Iterable"
     ],
     "strict": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "src/**/*.mts",

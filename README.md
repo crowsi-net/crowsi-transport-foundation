@@ -86,3 +86,10 @@ composing transports. Each library retains its own Cargo/npm distribution unit.
 
 Dependency updates: [repository policy](docs/dependency-updates.md).
 Registry releases: [version tags and GitHub OIDC](docs/registry-release.md).
+
+### npm development units
+
+The root transport and the two packages under `packages/` are independent npm
+projects. Install and test each project from its own directory with its own
+committed lockfile (`npm ci --workspaces=false --ignore-scripts`). CI and
+Dependabot use these same project boundaries; the root is not an npm workspace.

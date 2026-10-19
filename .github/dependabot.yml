@@ -3,6 +3,8 @@ updates:
 - package-ecosystem: npm
   directories:
   - /
+  - /packages/crowsi-interaction-transport
+  - /packages/crowsi-provider-http-transport
   schedule:
     interval: daily
     time: '05:00'
