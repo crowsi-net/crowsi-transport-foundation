@@ -159,7 +159,7 @@ async function main(): Promise<void> {
   if (!token) throw Error('Repository-scoped issue token required');
   const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json',
     'Content-Type': 'application/json', 'X-GitHub-Api-Version': '2022-11-28' };
-  const api = async (path: string) => JSON.parse((await boundedRead(`https://api.github.com/repos/${repository}/${path}`, 4 * 1024 ** 2, headers)).toString());
+  const api = async (path: string) => JSON.parse((await boundedRead(`https://api.github.com/repos/${repository}${path ? '/' + path : ''}`, 4 * 1024 ** 2, headers)).toString());
   const metadata = object(await api(''));
   if (metadata.full_name !== repository || metadata.private !== false || metadata.archived) throw Error('Active public owner required');
   const verify = await sigstoreVerifier();
