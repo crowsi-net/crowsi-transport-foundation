@@ -10,7 +10,7 @@ license = "Apache-2.0"
 description = "Bounded local framing, delivery identities and transport lifecycle"
 repository = "https://github.com/crowsi-net/crowsi-transport-foundation"
 publish = ["crates-io"]
-include = ["src/**", "tests/**", "Cargo.toml", "README.md", "README.crate.md", "contract.json", "LICENSE", "NOTICE"]
+include = ["/src/**", "/tests/**", "/Cargo.toml", "/README.md", "/README.crate.md", "/contract.json", "/LICENSE", "/NOTICE"]
 
 [workspace]
 members = [".", "crates/*"]
