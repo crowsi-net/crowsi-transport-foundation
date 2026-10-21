@@ -56,6 +56,11 @@ impl Server {
             }
             let request = String::from_utf8(request).unwrap();
             assert!(request.starts_with("GET /inspect "));
+            assert!(request.to_ascii_lowercase().contains(concat!(
+                "user-agent: crowsi-provider-read-http/",
+                env!("CARGO_PKG_VERSION"),
+                "\r\n"
+            )));
             assert!(
                 request
                     .to_ascii_lowercase()

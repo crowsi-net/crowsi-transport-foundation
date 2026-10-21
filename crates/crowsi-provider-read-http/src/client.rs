@@ -11,6 +11,10 @@ pub struct HttpsRead {
 }
 pub(crate) fn builder() -> reqwest::blocking::ClientBuilder {
     Client::builder()
+        .user_agent(concat!(
+            "crowsi-provider-read-http/",
+            env!("CARGO_PKG_VERSION")
+        ))
         .https_only(true)
         .no_proxy()
         .redirect(reqwest::redirect::Policy::none())
