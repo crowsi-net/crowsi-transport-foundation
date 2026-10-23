@@ -16,4 +16,4 @@ runnerはbuild済みpackageをpackし、空npm設定とpublic registry cacheで�
 
 prepare/approve/executeのcompositionはownerが持ち、生成コードには渡しません。メモリ内grantは単回・期限付きですが、署名付き永続native認可やOS sandboxではありません。Windows/nativeと実account受入は別条件です。
 
-ownerのPR/mainと既存publish-provider.ymlからconsumerを検証し、Trusted Publisherのworkflow bindingを維持します。private管理repoや隣接sourceに依存しません。
+ownerのPR/mainでconsumerを検証し、版タグのpublish-npm.ymlでCI成功・source・配布物hashを照合してからEnvironmentレビューとnpm所有者承認へ進みます。private管理repoや隣接sourceに依存しません。
