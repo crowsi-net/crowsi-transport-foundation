@@ -1,4 +1,4 @@
-name: Published provider source history
+name: Current provider owner provenance
 on:
   pull_request:
   push:
@@ -13,24 +13,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Restore original public source without executing it
+      - name: Verify current owner provenance without restoring retired repositories
         run: |
-          python3 - <<'PY'
-          import hashlib,json,subprocess,tempfile
-          from pathlib import Path
-          root=Path('source-history/crowsi-provider-http-transport')
-          record=json.loads((root/'source-record.json').read_text())
-          bundle=(root/'original.bundle').resolve()
-          assert hashlib.sha256(bundle.read_bytes()).hexdigest()==record['bundle_sha256']
-          with tempfile.TemporaryDirectory() as directory:
-              def git(*args):
-                  return subprocess.check_output(['git',*args],cwd=directory,stderr=subprocess.DEVNULL,text=True).strip()
-              git('init','--bare')
-              git('bundle','verify',str(bundle))
-              git('fetch',str(bundle),'+refs/*:refs/*')
-              for ref in record['refs']:
-                  assert git('rev-parse',ref['ref'])==ref['sha']
-              assert git('cat-file','-t','089469a09f98c0964a1a4ea36526d75157966821')=='commit'
-              assert git('rev-parse','refs/tags/v0.10.1^{commit}')=='089469a09f98c0964a1a4ea36526d75157966821'
-          print('Original published source commit and observed refs restored')
-          PY
+          python3 - <<'PYCODE'
+          import json, os, re, subprocess
+          from pathlib import Path, PurePosixPath
+          record = Path('source-consolidation.json')
+          assert record.is_file() and not record.is_symlink() and record.stat().st_size <= 65536
+          data = json.loads(record.read_text())
+          assert data['owner_repository'] == os.environ['GITHUB_REPOSITORY']
+          for component in data.get('components', []):
+              assert component['owner_repository'] == data['owner_repository']
+              assert re.fullmatch(r'[0-9a-f]{40}', component['source_head'])
+              path = PurePosixPath(component['subpath'])
+              assert not path.is_absolute() and '..' not in path.parts
+              assert (Path('.') / path).is_dir()
+              assert not {'history_archive', 'history_ref', 'local_history_ref'} & component.keys()
+          if not data.get('components'):
+              assert re.fullmatch(r'[0-9a-f]{40}', data['source_sha'])
+          assert 'canonical_history_bundle' not in data
+          paths = subprocess.check_output(['git', 'ls-files', '-z'], timeout=10).decode().split('\0')
+          assert len(paths) <= 8192
+          assert not any(p.endswith('.bundle') or 'source-history' in PurePosixPath(p).parts for p in paths if p)
+          print('Current owner provenance verified; no historical repository restoration')
+          PYCODE
