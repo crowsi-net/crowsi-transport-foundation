@@ -1,0 +1,15 @@
+{
+  "schema": "source-consolidation-v1",
+  "owner_repository": "crowsi-net/crowsi-transport-foundation",
+  "components": [
+    {
+      "id": "crowsi-provider-http-transport",
+      "original_repository": "crowsi-net/crowsi-provider-http-transport",
+      "source_head": "089469a09f98c0964a1a4ea36526d75157966821",
+      "subpath": "packages/crowsi-provider-http-transport",
+      "owner_repository": "crowsi-net/crowsi-transport-foundation",
+      "retired_archive_sha256": "ddf402f51b36a5a885e1405e0061a263b31115f28c6ab34c6e26048a54c5eed6"
+    }
+  ],
+  "status": "Current source is maintained only in this owner. Original repository/revision and retired archive digest are provenance only; archive restoration is retired. Current manifests and owner workflows define publication; public availability is verified separately."
+}
