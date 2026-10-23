@@ -16,4 +16,4 @@ The runner packs the built package, uses empty npm configuration and a public re
 
 The example gives the owner prepare/approve/execute and never grants that composition to generated code. In-memory grants are one-use and expire; they are not a durable signed native authorization or an OS sandbox. Windows/native acceptance and real-account operations remain separate owner requirements.
 
-The provider-consumer workflow runs this example on owner pull requests and main. The existing publish-provider.yml trust binding is retained and verifies the consumer before publication. It needs no private coordinator or neighboring source repository.
+The provider-consumer workflow runs this example on owner pull requests and main. The version-tag publish-npm.yml route requires successful owner CI and binds the selected archive to its source and hash before Environment review and npm owner approval. It needs no private coordinator or neighboring source repository.

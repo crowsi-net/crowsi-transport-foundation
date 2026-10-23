@@ -35,11 +35,10 @@ Manifest versions and publish flags are declarations, not proof of published ava
 - [.github/workflows/ci.yml](../.github/workflows/ci.yml)
 - [.github/workflows/interaction-transport.yml](../.github/workflows/interaction-transport.yml)
 - [.github/workflows/oss-policy.yml](../.github/workflows/oss-policy.yml)
-- [.github/workflows/prepare-npm-artifact.yml](../.github/workflows/prepare-npm-artifact.yml)
-- [.github/workflows/prepare-provider-http-artifact.yml](../.github/workflows/prepare-provider-http-artifact.yml)
 - [.github/workflows/provider-consumer.yml](../.github/workflows/provider-consumer.yml)
 - [.github/workflows/publish-cargo.yml](../.github/workflows/publish-cargo.yml)
-- [.github/workflows/publish-provider.yml](../.github/workflows/publish-provider.yml)
+- [.github/workflows/publish-npm.yml](../.github/workflows/publish-npm.yml)
+- [.github/workflows/reconcile-npm-stages.yml](../.github/workflows/reconcile-npm-stages.yml)
 - [.github/workflows/published-source-history.yml](../.github/workflows/published-source-history.yml)
 - [.github/workflows/verify-cargo.yml](../.github/workflows/verify-cargo.yml)
 
