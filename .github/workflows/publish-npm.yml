@@ -72,7 +72,11 @@ jobs:
           fi
           git diff --exit-code
           mkdir -p "$RUNNER_TEMP/npm-release"
-          npm_config_ignore_scripts=true pnpm --dir "$PACKAGE_DIRECTORY" pack --pack-destination "$RUNNER_TEMP/npm-release"
+          if test -f "$INSTALL_DIRECTORY/pnpm-lock.yaml"; then
+            npm_config_ignore_scripts=true pnpm --dir "$PACKAGE_DIRECTORY" pack --pack-destination "$RUNNER_TEMP/npm-release"
+          else
+            (cd "$PACKAGE_DIRECTORY" && npm pack --ignore-scripts --json --workspaces=false --pack-destination "$RUNNER_TEMP/npm-release")
+          fi
       - name: Bind archive identity and digest
         id: archive
         run: python3 .github/scripts/archive_binding.py prepare npm "$RUNNER_TEMP/npm-release"
